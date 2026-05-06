@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#008026">
+<title>Summer 2026 Kickball Tournament</title>
+<style>
+  /* ============================================================
+     Reset + base
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.45;
+    color: #0f172a;
+    background: #f8fafc;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { margin: 0 0 .5rem; line-height: 1.2; font-weight: 800; letter-spacing: -.01em; }
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.05rem; }
+  p { margin: .25rem 0 .75rem; }
+  button { font: inherit; cursor: pointer; }
+  input { font: inherit; }
+  a { color: #008026; }
+
+  /* ============================================================
+     Layout
+     ============================================================ */
+  .sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: #0a0a0a;
+    color: #f8fafc;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  /* Progress Pride stripe — sits on top of the sticky banner, echoing
+     the rainbow on the bottom half of the ECKB shield. */
+  .pride-stripe {
+    height: 5px;
+    background: linear-gradient(90deg,
+      #E40303 0% 16.66%,
+      #FF8C00 16.66% 33.33%,
+      #FFED00 33.33% 50%,
+      #008026 50% 66.66%,
+      #004DFF 66.66% 83.33%,
+      #750787 83.33% 100%);
+  }
+  .next-banner {
+    padding: .55rem .75rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem .75rem;
+    font-size: .95rem;
+  }
+  .next-banner .label {
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    background: #B8F6D0;
+    color: #064E3B;
+    padding: .15rem .4rem;
+    border-radius: 4px;
+    font-weight: 800;
+  }
+  .next-banner .game-meta {
+    color: #cbd5e1;
+    font-size: .8rem;
+  }
+  .next-banner.complete .label { background: #008026; color: #fff; }
+
+  nav.tabs {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    background: #1a1a1a;
+  }
+  nav.tabs::-webkit-scrollbar { display: none; }
+  nav.tabs a {
+    flex: 0 0 auto;
+    padding: .75rem 1rem;
+    color: #cbd5e1;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: .9rem;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+  }
+  nav.tabs a.active {
+    color: #fff;
+    border-bottom-color: #B8F6D0;
+  }
+
+  main { padding: 1rem; max-width: 1100px; margin: 0 auto; }
+  section { margin-bottom: 2.5rem; scroll-margin-top: 110px; }
+  section > h2 { margin-bottom: 1rem; }
+
+  /* ============================================================
+     Cards
+     ============================================================ */
+  .card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04);
+  }
+  .card + .card { margin-top: .75rem; }
+
+  /* ============================================================
+     Home
+     ============================================================ */
+  .hero {
+    background: linear-gradient(135deg, #008026 0%, #016934 100%);
+    color: #fff;
+    padding: 1.5rem 1.25rem;
+    border-radius: 14px;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Rainbow flag stripe along the bottom edge of the hero. */
+  .hero::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 6px;
+    background: linear-gradient(90deg,
+      #E40303 0% 16.66%,
+      #FF8C00 16.66% 33.33%,
+      #FFED00 33.33% 50%,
+      #008026 50% 66.66%,
+      #004DFF 66.66% 83.33%,
+      #750787 83.33% 100%);
+  }
+  .hero .date {
+    font-size: .9rem;
+    opacity: .85;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  .hero h1 { font-size: 1.8rem; margin: .25rem 0 .25rem; }
+  .hero .tag { font-size: .95rem; opacity: .9; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .5rem;
+    margin-bottom: 1rem;
+  }
+  .stat {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: .65rem .5rem;
+    text-align: center;
+  }
+  .stat-num { font-size: 1.4rem; font-weight: 800; color: #008026; }
+  .stat-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: #64748b; }
+
+  /* ============================================================
+     Schedule
+     ============================================================ */
+  .time-slot {
+    margin-bottom: 1rem;
+  }
+  .time-slot-header {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #0f172a;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-bottom: none;
+    padding: .5rem .75rem;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .time-slot-header small { color: #64748b; font-weight: 600; font-size: .75rem; }
+  .time-slot-games {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+  }
+  .game-row {
+    background: #fff;
+    padding: .65rem .75rem;
+    border-top: 1px solid #e2e8f0;
+  }
+  .game-row:first-child { border-top: none; }
+  .game-row.info {
+    background: #fef3c7;
+    color: #78350f;
+    font-style: italic;
+  }
+  .game-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: .75rem;
+    color: #64748b;
+    margin-bottom: .35rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 700;
+  }
+  .game-head .field { color: #008026; }
+  .matchup {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: .5rem;
+    align-items: center;
+  }
+  .team-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .25rem 0;
+  }
+  .team-row + .team-row { border-top: 1px dashed #e2e8f0; }
+  .team-name {
+    flex: 1;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .team-name.tbd { color: #94a3b8; font-style: italic; font-weight: 500; }
+  .team-name.winner { color: #15803d; }
+  .team-name.winner::after {
+    content: " ✓";
+    color: #15803d;
+  }
+  .team-name.loser { color: #94a3b8; text-decoration: line-through; }
+  .swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,.15);
+    flex-shrink: 0;
+  }
+  .swatch.tbd { background: repeating-linear-gradient(45deg, #e2e8f0, #e2e8f0 4px, #cbd5e1 4px, #cbd5e1 8px); }
+  .score-input {
+    width: 48px;
+    height: 36px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #0f172a;
+    -moz-appearance: textfield;
+  }
+  .score-input::-webkit-outer-spin-button,
+  .score-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .score-input:focus {
+    outline: none;
+    border-color: #008026;
+    background: #fff;
+  }
+  .score-input:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+  .scores-col {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+  }
+  .pack-up {
+    margin-top: .35rem;
+    font-size: .7rem;
+    color: #b45309;
+    background: #fef3c7;
+    padding: .25rem .4rem;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  @media (min-width: 720px) {
+    .time-slot-games { grid-template-columns: repeat(2, 1fr); }
+    .game-row { border-top: none; border-left: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+    .game-row:nth-child(odd) { border-left: none; }
+  }
+
+  /* ============================================================
+     Bracket — visual tree
+     ============================================================ */
+  .bracket-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .bracket-tree .col {
+    display: flex;
+    flex-direction: column;
+  }
+  .bracket-tree .col > h3 {
+    color: #008026;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin: 0 0 .5rem;
+  }
+  .bracket-tree .col-body {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+  .bracket-tree .match-pair {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+  .bracket-tree .game-slot { width: 100%; }
+
+  .bracket-game {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #008026;
+    border-radius: 8px;
+    padding: .55rem .65rem;
+    width: 100%;
+  }
+  .bracket-game .game-id {
+    font-size: .7rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: .25rem;
+  }
+  .bracket-game .bracket-team {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .2rem 0;
+    font-weight: 600;
+  }
+  .bracket-game .bracket-team .score {
+    margin-left: auto;
+    font-weight: 800;
+    color: #0f172a;
+    min-width: 1.5rem;
+    text-align: right;
+  }
+  .bracket-game .bracket-team.winner { color: #15803d; }
+  .bracket-game .bracket-team.loser { color: #94a3b8; }
+  .bracket-game.final { border-left-color: #facc15; }
+
+  @media (min-width: 720px) {
+    .bracket-tree {
+      flex-direction: row;
+      align-items: stretch;
+      min-height: 520px;
+      gap: 0;
+    }
+    .bracket-tree .col {
+      flex: 1;
+      min-width: 0;
+      padding: 0 .25rem;
+    }
+    .bracket-tree .col > h3 {
+      text-align: center;
+      margin-bottom: .75rem;
+    }
+    .bracket-tree .col-body {
+      flex: 1;
+      gap: 0;
+    }
+    .bracket-tree .match-pair {
+      flex: 1;
+      position: relative;
+      padding-right: 1.5rem;
+      gap: .5rem;
+    }
+    .bracket-tree .match-pair + .match-pair {
+      margin-top: .5rem;
+    }
+    .bracket-tree .game-slot {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    /* Stub from each game's right edge to the vertical line */
+    .bracket-tree .col-qf .game-slot::after,
+    .bracket-tree .col-sf .game-slot::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      width: .75rem;
+      height: 2px;
+      background: #94a3b8;
+    }
+    /* Vertical bracket line between the two slot midpoints */
+    .bracket-tree .col-qf .match-pair::after,
+    .bracket-tree .col-sf .match-pair::after {
+      content: '';
+      position: absolute;
+      right: .75rem;
+      top: 25%;
+      bottom: 25%;
+      width: 2px;
+      background: #94a3b8;
+    }
+    /* Outgoing line from pair midpoint into the next column */
+    .bracket-tree .col-qf .match-pair::before,
+    .bracket-tree .col-sf .match-pair::before {
+      content: '';
+      position: absolute;
+      right: -.25rem;
+      top: 50%;
+      width: 1rem;
+      height: 2px;
+      background: #94a3b8;
+      z-index: 1;
+    }
+    /* Final column — centered, no outgoing connectors */
+    .bracket-tree .col-f .col-body { justify-content: center; }
+    .bracket-tree .col-f .game-slot { flex: 0 0 auto; }
+  }
+
+  /* ============================================================
+     Up Next slot card (Home)
+     ============================================================ */
+  .next-slot-card {
+    border-left: 4px solid #B8F6D0;
+  }
+  .next-slot-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: .75rem;
+    padding-bottom: .65rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .next-slot-tag {
+    font-size: .65rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: #064E3B;
+    font-weight: 800;
+    background: #B8F6D0;
+    padding: .15rem .4rem;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: .2rem;
+  }
+  .next-slot-time {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+  }
+  .next-slot-meta {
+    text-align: right;
+    font-size: .8rem;
+    color: #64748b;
+  }
+  .next-slot-meta strong {
+    display: block;
+    color: #0f172a;
+    font-size: .9rem;
+  }
+  .next-slot-games {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .55rem;
+  }
+  @media (min-width: 600px) {
+    .next-slot-games { grid-template-columns: 1fr 1fr; }
+  }
+  .next-slot-game {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: .55rem .65rem;
+  }
+  .next-slot-game-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: .7rem;
+    color: #008026;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 700;
+    margin-bottom: .35rem;
+  }
+
+  /* ============================================================
+     Standings
+     ============================================================ */
+  .standings-note {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 8px;
+    padding: .65rem .75rem;
+    font-size: .85rem;
+    color: #78350f;
+    margin-bottom: .75rem;
+  }
+  table.standings {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: .9rem;
+  }
+  table.standings th, table.standings td {
+    padding: .55rem .5rem;
+    text-align: center;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  table.standings th {
+    background: #f8fafc;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #64748b;
+  }
+  table.standings td.team-cell {
+    text-align: left;
+    font-weight: 700;
+  }
+  table.standings tr.star {
+    background: linear-gradient(90deg, #fef9c3 0%, #fef3c7 100%);
+  }
+  table.standings tr.star td:first-child::before {
+    content: "★ ";
+    color: #ca8a04;
+  }
+
+  /* ============================================================
+     Teams
+     ============================================================ */
+  .teams-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: .5rem;
+  }
+  @media (min-width: 480px) { .teams-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 720px) { .teams-grid { grid-template-columns: repeat(4, 1fr); } }
+  .team-card {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .65rem .75rem;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    font-weight: 700;
+  }
+  .team-card .swatch-lg {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,.15);
+    flex-shrink: 0;
+  }
+
+  /* ============================================================
+     Admin
+     ============================================================ */
+  .admin {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: 1rem;
+  }
+  .btn {
+    padding: .55rem .85rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #0f172a;
+    font-weight: 600;
+    font-size: .9rem;
+  }
+  .btn:hover { background: #f1f5f9; }
+  .btn.primary { background: #008026; color: #fff; border-color: #008026; }
+  .btn.primary:hover { background: #016934; }
+  .btn.danger { color: #b91c1c; border-color: #fecaca; }
+  .btn.danger:hover { background: #fee2e2; }
+
+  .footer-meta {
+    text-align: center;
+    color: #64748b;
+    font-size: .8rem;
+    padding: 1rem 0 2rem;
+  }
+
+  /* ============================================================
+     Sign-in lock button (sticky banner, right side)
+     ============================================================ */
+  .banner-row {
+    display: flex;
+    align-items: stretch;
+  }
+  .banner-row .next-banner { flex: 1; min-width: 0; }
+  .auth-lock {
+    flex-shrink: 0;
+    background: transparent;
+    color: #cbd5e1;
+    border: none;
+    border-left: 1px solid #1f1f1f;
+    padding: 0 .85rem;
+    font-size: .75rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .15rem;
+    min-width: 64px;
+    line-height: 1.1;
+  }
+  .auth-lock:hover { background: rgba(255,255,255,.06); }
+  .auth-lock .auth-lock-icon { font-size: 1.05rem; }
+  .auth-lock .auth-lock-label {
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .auth-lock.unlocked { color: #B8F6D0; }
+
+  /* ============================================================
+     Read-only score display (used when canEditScore is false)
+     ============================================================ */
+  .score-display {
+    width: 48px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+  }
+  .score-display.empty { color: #cbd5e1; font-weight: 600; }
+
+  /* ============================================================
+     Ref badges on game cards
+     ============================================================ */
+  .game-refs {
+    margin-top: .45rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+    align-items: center;
+    font-size: .75rem;
+  }
+  .game-refs-label {
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-weight: 800;
+    color: #64748b;
+    font-size: .65rem;
+    margin-right: .15rem;
+  }
+  .ref-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .12rem .45rem;
+    background: #f1f5f9;
+    border-radius: 4px;
+    color: #0f172a;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .ref-badge.head {
+    background: #064E3B;
+    color: #B8F6D0;
+  }
+  .ref-badge.volunteer {
+    background: #fef3c7;
+    color: #78350f;
+    font-style: italic;
+  }
+  .ref-badge.volunteer .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+  .ref-badge.missing {
+    background: #fee2e2;
+    color: #b91c1c;
+    font-style: italic;
+  }
+  /* Compact variant for the bracket cards */
+  .bracket-game .game-refs { margin-top: .35rem; gap: .2rem; }
+  .bracket-game .ref-badge { font-size: .7rem; padding: .1rem .35rem; }
+
+  /* ============================================================
+     Refs management (organiser-only) — per-game row with selects
+     ============================================================ */
+  .refs-intro {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: .65rem .75rem;
+    font-size: .85rem;
+    color: #334155;
+    margin-bottom: .75rem;
+  }
+  .refs-intro strong { color: #0f172a; }
+  .refs-list { display: flex; flex-direction: column; gap: .65rem; }
+  .ref-row {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: .75rem .85rem;
+  }
+  .ref-row-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: .25rem .75rem;
+    font-size: .8rem;
+    color: #64748b;
+    margin-bottom: .5rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-weight: 700;
+  }
+  .ref-row-head .ref-row-game { color: #0f172a; }
+  .ref-row-head .ref-row-teams {
+    color: #008026;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 600;
+  }
+  .ref-row-slots {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .5rem;
+  }
+  @media (min-width: 600px) {
+    .ref-row-slots { grid-template-columns: repeat(3, 1fr); }
+  }
+  .ref-slot label {
+    display: block;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: .2rem;
+  }
+  .ref-slot select {
+    width: 100%;
+    padding: .55rem .6rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #fff;
+    font-size: .9rem;
+    font-weight: 600;
+    color: #0f172a;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right .65rem center;
+    padding-right: 1.5rem;
+  }
+  .ref-slot select:focus { outline: none; border-color: #008026; }
+  .ref-slot.empty select { border-color: #fca5a5; background-color: #fef2f2; }
+
+  /* ============================================================
+     Account section (sign-in state + admin controls)
+     ============================================================ */
+  .account-state {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: .75rem .85rem;
+    margin-bottom: .75rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem .75rem;
+    font-size: .9rem;
+  }
+  .account-state .role-pill {
+    display: inline-block;
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    background: #e2e8f0;
+    color: #0f172a;
+    font-size: .75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .account-state[data-role="ref"] .role-pill { background: #B8F6D0; color: #064E3B; }
+  .account-state[data-role="organiser"] .role-pill { background: #064E3B; color: #B8F6D0; }
+
+  /* ============================================================
+     Hide org-only UI for non-organiser roles
+     ============================================================ */
+  body[data-role="player"] .org-only,
+  body[data-role="ref"] .org-only { display: none !important; }
+  body[data-role="player"] .ref-or-org-only,
+  body[data-role="player"] section#admin { /* legacy alias if used */ }
+
+  /* ============================================================
+     Modal (sign-in)
+     ============================================================ */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0,0,0,.55);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1rem;
+  }
+  @media (min-width: 480px) { .modal { align-items: center; } }
+  .modal[hidden] { display: none; }
+  .modal-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.25rem;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 25px 60px rgba(0,0,0,.3);
+  }
+  .modal-card h3 { margin: 0 0 .25rem; }
+  .modal-card p { color: #64748b; font-size: .9rem; margin: 0 0 .5rem; }
+  .modal-card input,
+  .modal-card select {
+    width: 100%;
+    padding: .7rem .8rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    margin-top: .35rem;
+    box-sizing: border-box;
+  }
+  .modal-card input:focus,
+  .modal-card select:focus { outline: none; border-color: #008026; }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .5rem;
+    margin-top: 1rem;
+  }
+  .auth-error {
+    margin-top: .5rem;
+    color: #b91c1c;
+    font-size: .85rem;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body data-role="player">
+  <div class="sticky-top">
+    <div class="pride-stripe" aria-hidden="true"></div>
+    <div class="banner-row">
+      <div id="next-banner" class="next-banner" aria-live="polite"></div>
+      <button type="button" class="auth-lock" id="auth-lock" aria-label="Sign in">
+        <span class="auth-lock-icon" aria-hidden="true">🔒</span>
+        <span class="auth-lock-label">Sign in</span>
+      </button>
+    </div>
+    <nav class="tabs" id="tabs">
+      <a href="#home" data-tab="home">Home</a>
+      <a href="#schedule" data-tab="schedule">Schedule</a>
+      <a href="#bracket" data-tab="bracket">Bracket</a>
+      <a href="#standings" data-tab="standings">Standings</a>
+      <a href="#teams" data-tab="teams">Teams</a>
+      <a href="#refs" data-tab="refs" class="org-only">Refs</a>
+    </nav>
+  </div>
+
+  <main>
+    <section id="home">
+      <div class="hero">
+        <div class="date" id="hero-date">Sunday · 10 May 2026</div>
+        <h1 id="hero-title">Summer 2026 Kickball Tournament</h1>
+        <div class="tag">14 teams · 4 fields · one big day</div>
+      </div>
+      <div class="stats" id="home-stats"></div>
+      <div id="home-next"></div>
+    </section>
+
+    <section id="schedule">
+      <h2>Schedule</h2>
+      <p style="color:#64748b;font-size:.85rem;margin-top:-.25rem;">
+        Tap a score to enter it. Winners advance automatically.
+      </p>
+      <div id="schedule-grid"></div>
+    </section>
+
+    <section id="bracket">
+      <h2>Bracket</h2>
+      <div id="bracket-view" class="bracket"></div>
+    </section>
+
+    <section id="standings">
+      <h2>Round 1 Standings (Star contention)</h2>
+      <div class="standings-note">
+        <strong>Star team rules:</strong> the best-performing R1 loser
+        advances to Game 12 as the 8th QF team. Sorted by run differential,
+        then runs scored, then head-to-head (see code comment in this file
+        for the configurable tiebreaker order).
+      </div>
+      <div id="standings-view"></div>
+    </section>
+
+    <section id="teams">
+      <h2>Teams</h2>
+      <div class="teams-grid" id="teams-grid"></div>
+    </section>
+
+    <section id="refs" class="org-only">
+      <h2>Ref assignments</h2>
+      <div class="refs-intro">
+        <strong>Organiser only.</strong> Pick the head ref (head-eligible
+        only) and two line refs for each game. If a line ref slot has no
+        suitable ref free at that time, set it to <em>Volunteer team</em>
+        and the team's player will fill in. Refs already assigned to
+        another concurrent game are filtered out automatically.
+      </div>
+      <div id="refs-view" class="refs-list"></div>
+    </section>
+
+    <section id="account">
+      <h2>Account</h2>
+      <div id="account-state" class="account-state" data-role="player"></div>
+      <div id="admin-tools" class="org-only">
+        <p style="color:#64748b;font-size:.85rem;">
+          Scores and ref assignments save to this device. To share state
+          across phones, export the JSON, send it to another organiser,
+          and import on their device.
+        </p>
+        <div class="admin">
+          <button class="btn primary" id="export-btn">Export JSON</button>
+          <button class="btn" id="import-btn">Import JSON</button>
+          <input type="file" id="import-file" accept="application/json,.json" hidden>
+          <button class="btn danger" id="reset-btn">Reset all scores</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-meta">
+      Built for the fields · Works offline after first load.
+    </div>
+  </main>
+
+  <!-- Sign-in modal: PIN prompt → ref-name picker on Ref PIN -->
+  <div id="auth-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="modal-card">
+      <h3 id="auth-modal-title">Sign in</h3>
+      <div id="auth-step-pin">
+        <p>Enter your PIN.</p>
+        <input type="password"
+               id="auth-pin"
+               inputmode="numeric"
+               autocomplete="off"
+               maxlength="8"
+               placeholder="••••">
+        <div id="auth-error" class="auth-error" hidden></div>
+      </div>
+      <div id="auth-step-ref" hidden>
+        <p>Pick your name from the roster.</p>
+        <select id="auth-ref-select"></select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="auth-cancel">Cancel</button>
+        <button type="button" class="btn primary" id="auth-confirm">Continue</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+"use strict";
+
+/* ==================================================================
+   CONFIG — edit times, teams, and games here
+   ==================================================================
+   All tournament data lives in this single object. The UI reads from
+   it; nothing below the CONFIG block needs editing for date / time /
+   matchup changes.
+   ================================================================== */
+const CONFIG = {
+  tournamentTitle: "Summer 2026 Kickball Tournament",
+  tournamentDateLabel: "Sunday · 10 May 2026",
+
+  // Soft-auth PINs (NOT real security — anyone reading the source can
+  // see them). Edit before tournament day. The Ref PIN unlocks score
+  // entry only on a ref's assigned games; the Organiser PIN unlocks
+  // all games + the Refs management tab + Reset/Export/Import.
+  pins: {
+    ref: "0000",
+    organiser: "1111",
+  },
+
+  // Number of line refs per game. Each game also has 1 head ref.
+  linesPerGame: 2,
+
+  // Ref roster — placeholder. Edit before tournament day. Each ref has
+  // a stable id (used in saved state), a display name, and a
+  // headEligible flag. Only head-eligible refs appear in the Head
+  // dropdown; everyone can be a line ref.
+  refs: [
+    { id: "r1", name: "Alex",   headEligible: true  },
+    { id: "r2", name: "Sam",    headEligible: true  },
+    { id: "r3", name: "Pat",    headEligible: true  },
+    { id: "r4", name: "Jamie",  headEligible: false },
+    { id: "r5", name: "Robin",  headEligible: false },
+    { id: "r6", name: "Casey",  headEligible: false },
+    { id: "r7", name: "Morgan", headEligible: false },
+  ],
+
+  // Hex colour per team. Baby Blue (#89CFF0) and Blue (#1E40AF) are
+  // intentionally far apart on the spectrum so they're easy to tell
+  // apart in sunlight on a small screen.
+  teams: {
+    "Baby Blue":  "#89CFF0",
+    "Pink":       "#EC4899",
+    "Lilac":      "#C8A2C8",
+    "Green":      "#16A34A",
+    "Red":        "#B91C1C",
+    "Hay":        "#DAA520",
+    "Black":      "#1F2937",
+    "Apple":      "#84CC16",
+    "Yellow":     "#FACC15",
+    "Chocolate":  "#78350F",
+    "Purple":     "#9333EA",
+    "Blue":       "#1E40AF",
+    "Orange":     "#F97316",
+    "Teal":       "#0D9488",
+  },
+
+  // Time slots in display order. `info` rows are non-game items shown
+  // in the schedule (set-up, huddle, etc).
+  timeSlots: [
+    { time: "12:00 pm", info: { label: "Fields set-up" } },
+    { time: "12:45 pm", info: { label: "Huddle" } },
+    { time: "1:00 pm" },
+    { time: "1:45 pm" },
+    { time: "2:30 pm" },
+    { time: "3:15 pm" },
+    { time: "4:00 pm" },
+  ],
+
+  // Round labels used for grouping.
+  rounds: { R1: "Round 1", QF: "Quarter Finals", SF: "Semi Finals", F: "Final" },
+
+  // Game definitions. `teamA` / `teamB` are either:
+  //   - a literal team name (Round 1)
+  //   - { winnerOf: <gameId> }  (advances winner of an earlier game)
+  //   - { star: true }          (the Star team — best R1 loser)
+  //
+  // NOTE ON GAME NUMBERING: Game 8 is intentionally skipped. The
+  // template originally accommodated 16 teams, where Game 8 was a R1
+  // matchup. We now have 14 teams, so the Star team takes the slot
+  // that would have been Game 8's winner (in Game 12). Numbering is
+  // preserved for continuity with the ref group chat schedule.
+  games: [
+    { id: 1,  round: "R1", time: "1:00 pm",  field: "Middle Field", teamA: "Baby Blue", teamB: "Pink"  },
+    { id: 2,  round: "R1", time: "1:00 pm",  field: "Kiosk Field",  teamA: "Lilac",     teamB: "Green" },
+    { id: 3,  round: "R1", time: "1:00 pm",  field: "Road Field",   teamA: "Red",       teamB: "Hay"   },
+    { id: 4,  round: "R1", time: "1:00 pm",  field: "Water Field",  teamA: "Black",     teamB: "Apple" },
+    { id: 5,  round: "R1", time: "1:45 pm",  field: "Middle Field", teamA: "Yellow",    teamB: "Chocolate" },
+    { id: 6,  round: "R1", time: "1:45 pm",  field: "Kiosk Field",  teamA: "Purple",    teamB: "Blue"  },
+    { id: 7,  round: "R1", time: "1:45 pm",  field: "Road Field",   teamA: "Orange",    teamB: "Teal"  },
+    // Game 8 intentionally omitted — see note above.
+    { id: 9,  round: "QF", time: "2:30 pm",  field: "Middle Field", teamA: { winnerOf: 1 }, teamB: { winnerOf: 2 } },
+    { id: 10, round: "QF", time: "2:30 pm",  field: "Kiosk Field",  teamA: { winnerOf: 3 }, teamB: { winnerOf: 4 } },
+    { id: 11, round: "QF", time: "2:30 pm",  field: "Road Field",   teamA: { winnerOf: 5 }, teamB: { winnerOf: 6 }, packUp: "Loser packs up Road Field" },
+    { id: 12, round: "QF", time: "2:30 pm",  field: "Water Field",  teamA: { winnerOf: 7 }, teamB: { star: true },  packUp: "Loser packs up Water Field" },
+    { id: 13, round: "SF", time: "3:15 pm",  field: "Middle Field", teamA: { winnerOf: 10 }, teamB: { winnerOf: 9 } },
+    { id: 14, round: "SF", time: "3:15 pm",  field: "Kiosk Field",  teamA: { winnerOf: 11 }, teamB: { winnerOf: 12 }, packUp: "Loser packs up Kiosk Field" },
+    { id: 15, round: "F",  time: "4:00 pm",  field: "Middle Field", teamA: { winnerOf: 13 }, teamB: { winnerOf: 14 }, packUp: "Loser packs up Middle Field" },
+  ],
+};
+
+/* ==================================================================
+   STAR TEAM SELECTION (CONFIGURABLE TIEBREAKERS)
+   ==================================================================
+   The 7 R1 losers compete for one "Star" slot in Game 12. Edit the
+   `STAR_TIEBREAKERS` array below to change the order of criteria.
+   Each entry returns a number where HIGHER is BETTER for that team.
+   The first criterion to break a tie wins; if all tie, we fall back
+   to game number ascending so the result is deterministic.
+
+   1. runDiff   — runs scored minus runs allowed
+   2. runs      — total runs scored
+   3. headToHead — N/A in this format (every R1 loser comes from a
+        different game, so no two candidates ever played each other).
+        Listed here so the code matches the documented rule set; the
+        function returns 0 for all candidates and is effectively a
+        no-op. It will start to matter only if R1 ever expands to
+        include rematches.
+   ================================================================== */
+const STAR_TIEBREAKERS = [
+  (loser) => loser.runDiff,
+  (loser) => loser.runs,
+  (_loser) => 0, // head-to-head placeholder, see comment above
+];
+
+/* ==================================================================
+   STATE
+   ================================================================== */
+const STATE_KEY = "kickball-tournament-2026-v1";
+
+function emptyGameRefs() {
+  return {
+    head: null,
+    lines: Array(CONFIG.linesPerGame).fill(null),
+    // Each line slot is one of:
+    //   null                       — unassigned
+    //   { ref: <refId> }           — assigned ref
+    //   { team: <teamName> }       — team volunteer fallback
+  };
+}
+
+function emptyState() {
+  const games = {};
+  const gameRefs = {};
+  CONFIG.games.forEach(g => {
+    games[g.id] = { scoreA: null, scoreB: null };
+    gameRefs[g.id] = emptyGameRefs();
+  });
+  return { games, gameRefs };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STATE_KEY);
+    if (!raw) return emptyState();
+    const parsed = JSON.parse(raw);
+    // Merge so newly-added games (after a config change) get defaulted.
+    const base = emptyState();
+    if (parsed && parsed.games) {
+      Object.keys(parsed.games).forEach(id => {
+        if (base.games[id]) base.games[id] = parsed.games[id];
+      });
+    }
+    if (parsed && parsed.gameRefs) {
+      Object.keys(parsed.gameRefs).forEach(id => {
+        if (base.gameRefs[id]) {
+          const incoming = parsed.gameRefs[id];
+          base.gameRefs[id] = {
+            head: incoming.head || null,
+            lines: Array.from({ length: CONFIG.linesPerGame }, (_, i) =>
+              (incoming.lines && incoming.lines[i]) || null),
+          };
+        }
+      });
+    }
+    return base;
+  } catch (e) {
+    console.warn("Failed to load state, resetting", e);
+    return emptyState();
+  }
+}
+
+function saveState() {
+  try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); }
+  catch (e) { console.warn("Failed to save state", e); }
+}
+
+let state = loadState();
+
+/* ==================================================================
+   AUTH (per-device, NOT exported with state)
+   ==================================================================
+   Three roles:
+     - "player"    (default, read-only)
+     - "ref"       (can score only their assigned games — refId stored
+                    so the app knows which games are theirs)
+     - "organiser" (can score any game + manage ref assignments)
+
+   Auth lives in its own localStorage key so it doesn't ride along when
+   the score state is exported between devices.
+   ================================================================== */
+const AUTH_KEY = "kickball-tournament-2026-auth-v1";
+const DEFAULT_AUTH = { role: "player", refId: null };
+
+function loadAuth() {
+  try {
+    const raw = localStorage.getItem(AUTH_KEY);
+    if (!raw) return { ...DEFAULT_AUTH };
+    const parsed = JSON.parse(raw) || {};
+    const role = ["player", "ref", "organiser"].includes(parsed.role)
+      ? parsed.role : "player";
+    const refId = parsed.refId && CONFIG.refs.find(r => r.id === parsed.refId)
+      ? parsed.refId : null;
+    // If they were a ref but the chosen ref is no longer in the
+    // roster, drop them back to player.
+    if (role === "ref" && !refId) return { ...DEFAULT_AUTH };
+    return { role, refId };
+  } catch {
+    return { ...DEFAULT_AUTH };
+  }
+}
+
+function saveAuth() {
+  try { localStorage.setItem(AUTH_KEY, JSON.stringify(auth)); }
+  catch (e) { console.warn("Failed to save auth", e); }
+}
+
+let auth = loadAuth();
+
+function getRef(refId) {
+  return CONFIG.refs.find(r => r.id === refId) || null;
+}
+
+function refsAtSameSlot(gameId) {
+  // Returns the set of ref ids assigned (head or line) to other games
+  // at the same time slot — used to filter dropdowns so a ref can't
+  // be double-booked.
+  const def = gameDef(gameId);
+  if (!def) return new Set();
+  const conflicts = new Set();
+  for (const og of CONFIG.games) {
+    if (og.id === gameId || og.time !== def.time) continue;
+    const r = state.gameRefs[og.id];
+    if (!r) continue;
+    if (r.head) conflicts.add(r.head);
+    (r.lines || []).forEach(slot => {
+      if (slot && slot.ref) conflicts.add(slot.ref);
+    });
+  }
+  return conflicts;
+}
+
+function canEditScore(gameId) {
+  if (auth.role === "organiser") return true;
+  if (auth.role === "ref" && auth.refId) {
+    const r = state.gameRefs[gameId];
+    if (!r) return false;
+    if (r.head === auth.refId) return true;
+    return (r.lines || []).some(slot => slot && slot.ref === auth.refId);
+  }
+  return false;
+}
+
+/* ==================================================================
+   RESOLUTION — turn refs ({winnerOf}, {star}) into team names
+   ================================================================== */
+function gameDef(id) { return CONFIG.games.find(g => g.id === id); }
+
+function getScore(id) { return state.games[id] || { scoreA: null, scoreB: null }; }
+
+function isComplete(id) {
+  const s = getScore(id);
+  return s.scoreA !== null && s.scoreB !== null
+      && s.scoreA !== "" && s.scoreB !== ""
+      && s.scoreA !== s.scoreB; // ties don't determine a winner
+}
+
+function getWinner(id) {
+  if (!isComplete(id)) return null;
+  const s = getScore(id);
+  const def = gameDef(id);
+  const a = resolveTeam(def.teamA);
+  const b = resolveTeam(def.teamB);
+  return s.scoreA > s.scoreB ? a : b;
+}
+
+function getLoser(id) {
+  if (!isComplete(id)) return null;
+  const s = getScore(id);
+  const def = gameDef(id);
+  const a = resolveTeam(def.teamA);
+  const b = resolveTeam(def.teamB);
+  return s.scoreA > s.scoreB ? b : a;
+}
+
+function resolveTeam(ref) {
+  if (typeof ref === "string") return ref;
+  if (!ref || typeof ref !== "object") return null;
+  if (ref.winnerOf) return getWinner(ref.winnerOf);
+  if (ref.star) return computeStarTeam();
+  return null;
+}
+
+function teamLabel(ref) {
+  // For unfilled slots, return a human placeholder.
+  if (typeof ref === "string") return ref;
+  if (ref && ref.winnerOf) return "Winner of Game " + ref.winnerOf;
+  if (ref && ref.star) return "Star team";
+  return "TBD";
+}
+
+/* ==================================================================
+   STAR TEAM
+   ================================================================== */
+function r1Losers() {
+  const r1 = CONFIG.games.filter(g => g.round === "R1");
+  const losers = [];
+  for (const g of r1) {
+    if (!isComplete(g.id)) return null; // need all R1 done
+    const s = getScore(g.id);
+    const isLoserA = s.scoreA < s.scoreB;
+    const team = isLoserA ? g.teamA : g.teamB;
+    const runs = isLoserA ? s.scoreA : s.scoreB;
+    const allowed = isLoserA ? s.scoreB : s.scoreA;
+    losers.push({
+      team,
+      runs,
+      allowed,
+      runDiff: runs - allowed,
+      gameId: g.id,
+    });
+  }
+  return losers;
+}
+
+function rankLosers(losers) {
+  return [...losers].sort((a, b) => {
+    for (const fn of STAR_TIEBREAKERS) {
+      const diff = fn(b) - fn(a); // higher is better
+      if (diff !== 0) return diff;
+    }
+    return a.gameId - b.gameId; // deterministic fallback
+  });
+}
+
+function computeStarTeam() {
+  const losers = r1Losers();
+  if (!losers) return null;
+  const ranked = rankLosers(losers);
+  return ranked[0]?.team || null;
+}
+
+/* ==================================================================
+   UI HELPERS
+   ================================================================== */
+function contrastText(hex) {
+  // Pick black or white text for a coloured background based on
+  // perceived luminance. Used for swatch labels if we ever overlay text.
+  const c = hex.replace("#", "");
+  const r = parseInt(c.slice(0,2), 16);
+  const g = parseInt(c.slice(2,4), 16);
+  const b = parseInt(c.slice(4,6), 16);
+  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return lum > 0.6 ? "#0f172a" : "#ffffff";
+}
+
+function swatch(team, size) {
+  const colour = CONFIG.teams[team];
+  const cls = colour ? "swatch" : "swatch tbd";
+  const style = colour ? `background:${colour}` : "";
+  const sz = size === "lg" ? "swatch-lg" : "";
+  return `<span class="${cls} ${sz}" style="${style}" aria-hidden="true"></span>`;
+}
+
+function el(html) {
+  const t = document.createElement("template");
+  t.innerHTML = html.trim();
+  return t.content.firstElementChild;
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  }[c]));
+}
+
+/* ==================================================================
+   RENDER — Schedule
+   ================================================================== */
+function renderSchedule() {
+  const grid = document.getElementById("schedule-grid");
+  grid.innerHTML = "";
+
+  for (const slot of CONFIG.timeSlots) {
+    const slotGames = CONFIG.games.filter(g => g.time === slot.time);
+    const slotEl = document.createElement("div");
+    slotEl.className = "time-slot";
+
+    const fieldsLine = slotGames.length
+      ? slotGames.map(g => g.field.replace(" Field", "")).join(" · ")
+      : "";
+
+    slotEl.innerHTML = `
+      <div class="time-slot-header">
+        <span>${escapeHtml(slot.time)}</span>
+        <small>${escapeHtml(fieldsLine)}</small>
+      </div>
+      <div class="time-slot-games"></div>
+    `;
+    const gamesEl = slotEl.querySelector(".time-slot-games");
+
+    if (slot.info) {
+      gamesEl.appendChild(el(`
+        <div class="game-row info">
+          <div>${escapeHtml(slot.info.label)}</div>
+        </div>
+      `));
+    }
+
+    for (const g of slotGames) {
+      gamesEl.appendChild(renderGameRow(g));
+    }
+
+    if (slotGames.length === 0 && !slot.info) {
+      gamesEl.appendChild(el(`<div class="game-row info"><em>—</em></div>`));
+    }
+
+    grid.appendChild(slotEl);
+  }
+}
+
+function renderGameRow(g) {
+  const s = getScore(g.id);
+  const teamA = resolveTeam(g.teamA);
+  const teamB = resolveTeam(g.teamB);
+  const labelA = teamA || teamLabel(g.teamA);
+  const labelB = teamB || teamLabel(g.teamB);
+
+  const winner = getWinner(g.id);
+  const aClass = teamA ? (winner === teamA ? "winner" : (winner ? "loser" : "")) : "tbd";
+  const bClass = teamB ? (winner === teamB ? "winner" : (winner ? "loser" : "")) : "tbd";
+
+  const teamsKnown = !!(teamA && teamB);
+  const editable = teamsKnown && canEditScore(g.id);
+  const valA = s.scoreA == null ? "" : s.scoreA;
+  const valB = s.scoreB == null ? "" : s.scoreB;
+
+  const scoreCell = (val, side, label) => editable
+    ? `<input class="score-input" type="number" inputmode="numeric"
+              min="0" pattern="[0-9]*" data-game="${g.id}" data-side="${side}"
+              value="${val}" aria-label="Score for ${escapeHtml(label)}">`
+    : `<div class="score-display ${val === "" ? "empty" : ""}"
+            aria-label="Score for ${escapeHtml(label)}">${val === "" ? "—" : escapeHtml(val)}</div>`;
+
+  const row = el(`
+    <div class="game-row" data-game="${g.id}">
+      <div class="game-head">
+        <span>Game ${g.id} · ${escapeHtml(CONFIG.rounds[g.round] || g.round)}</span>
+        <span class="field">${escapeHtml(g.field)}</span>
+      </div>
+      <div class="matchup">
+        <div>
+          <div class="team-row">
+            ${swatch(teamA)}
+            <span class="team-name ${aClass}">${escapeHtml(labelA)}</span>
+          </div>
+          <div class="team-row">
+            ${swatch(teamB)}
+            <span class="team-name ${bClass}">${escapeHtml(labelB)}</span>
+          </div>
+        </div>
+        <div class="scores-col">
+          ${scoreCell(valA, "A", labelA)}
+          ${scoreCell(valB, "B", labelB)}
+        </div>
+      </div>
+      ${renderRefBadges(g.id)}
+      ${g.packUp ? `<div class="pack-up">⚑ ${escapeHtml(g.packUp)}</div>` : ""}
+    </div>
+  `);
+  return row;
+}
+
+function renderRefBadges(gameId) {
+  const refs = state.gameRefs[gameId] || emptyGameRefs();
+  const parts = [];
+
+  if (refs.head) {
+    const r = getRef(refs.head);
+    if (r) parts.push(`<span class="ref-badge head">★ ${escapeHtml(r.name)}</span>`);
+  } else {
+    parts.push(`<span class="ref-badge missing">★ Head TBD</span>`);
+  }
+
+  (refs.lines || []).forEach((slot, i) => {
+    if (!slot) {
+      parts.push(`<span class="ref-badge missing">Line ${i + 1} TBD</span>`);
+    } else if (slot.ref) {
+      const r = getRef(slot.ref);
+      if (r) parts.push(`<span class="ref-badge">${escapeHtml(r.name)}</span>`);
+    } else if (slot.team) {
+      parts.push(
+        `<span class="ref-badge volunteer">${swatch(slot.team)}${escapeHtml(slot.team)}</span>`
+      );
+    }
+  });
+
+  return `<div class="game-refs"><span class="game-refs-label">Refs</span>${parts.join("")}</div>`;
+}
+
+/* ==================================================================
+   RENDER — Bracket
+   ================================================================== */
+function renderBracket() {
+  // Visual tree: QFs paired into 2 brackets that feed the SF pair, which
+  // feeds the Final. Connector lines are drawn entirely in CSS via
+  // pseudo-elements on .match-pair and .game-slot — this function just
+  // emits the structural HTML.
+  const view = document.getElementById("bracket-view");
+  view.className = "bracket-tree";
+  view.innerHTML = "";
+
+  const qfGames = CONFIG.games.filter(g => g.round === "QF");
+  const sfGames = CONFIG.games.filter(g => g.round === "SF");
+  const fGames  = CONFIG.games.filter(g => g.round === "F");
+
+  // QF column — 4 games in 2 pairs
+  const qfCol = el(`<div class="col col-qf"><h3>Quarter Finals</h3><div class="col-body"></div></div>`);
+  const qfBody = qfCol.querySelector(".col-body");
+  for (let i = 0; i < qfGames.length; i += 2) {
+    const pair = el(`<div class="match-pair"></div>`);
+    pair.appendChild(makeGameSlot(qfGames[i]));
+    if (qfGames[i + 1]) pair.appendChild(makeGameSlot(qfGames[i + 1]));
+    qfBody.appendChild(pair);
+  }
+  view.appendChild(qfCol);
+
+  // SF column — 1 pair feeding the Final
+  const sfCol = el(`<div class="col col-sf"><h3>Semi Finals</h3><div class="col-body"></div></div>`);
+  const sfBody = sfCol.querySelector(".col-body");
+  const sfPair = el(`<div class="match-pair"></div>`);
+  sfGames.forEach(g => sfPair.appendChild(makeGameSlot(g)));
+  sfBody.appendChild(sfPair);
+  view.appendChild(sfCol);
+
+  // Final column
+  const fCol = el(`<div class="col col-f"><h3>Final</h3><div class="col-body"></div></div>`);
+  const fBody = fCol.querySelector(".col-body");
+  fGames.forEach(g => fBody.appendChild(makeGameSlot(g)));
+  view.appendChild(fCol);
+}
+
+function makeGameSlot(g) {
+  const slot = el(`<div class="game-slot"></div>`);
+  slot.appendChild(renderBracketGame(g));
+  return slot;
+}
+
+function renderBracketGame(g) {
+  const teamA = resolveTeam(g.teamA);
+  const teamB = resolveTeam(g.teamB);
+  const labelA = teamA || teamLabel(g.teamA);
+  const labelB = teamB || teamLabel(g.teamB);
+  const s = getScore(g.id);
+  const winner = getWinner(g.id);
+  const aClass = teamA ? (winner ? (winner === teamA ? "winner" : "loser") : "") : "loser";
+  const bClass = teamB ? (winner ? (winner === teamB ? "winner" : "loser") : "") : "loser";
+  const cls = "bracket-game" + (g.round === "F" ? " final" : "");
+  return el(`
+    <div class="${cls}">
+      <div class="game-id">Game ${g.id} · ${escapeHtml(g.field)} · ${escapeHtml(g.time)}</div>
+      <div class="bracket-team ${aClass}">
+        ${swatch(teamA)}
+        <span>${escapeHtml(labelA)}</span>
+        <span class="score">${s.scoreA == null ? "" : escapeHtml(s.scoreA)}</span>
+      </div>
+      <div class="bracket-team ${bClass}">
+        ${swatch(teamB)}
+        <span>${escapeHtml(labelB)}</span>
+        <span class="score">${s.scoreB == null ? "" : escapeHtml(s.scoreB)}</span>
+      </div>
+      ${renderRefBadges(g.id)}
+    </div>
+  `);
+}
+
+/* ==================================================================
+   RENDER — Standings
+   ================================================================== */
+function renderStandings() {
+  const view = document.getElementById("standings-view");
+  const losers = r1Losers();
+  if (!losers) {
+    const r1 = CONFIG.games.filter(g => g.round === "R1");
+    const done = r1.filter(g => isComplete(g.id)).length;
+    view.innerHTML = `
+      <div class="card">
+        <p><strong>Waiting for Round 1.</strong> ${done} of ${r1.length} games complete.
+        The Star team will populate here once all 7 R1 games have winners.</p>
+      </div>`;
+    return;
+  }
+  const ranked = rankLosers(losers);
+  const star = ranked[0];
+  view.innerHTML = `
+    <table class="standings">
+      <thead>
+        <tr>
+          <th>#</th><th>Team</th><th>R1 Game</th><th>Run Diff</th><th>RS</th><th>RA</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${ranked.map((l, i) => `
+          <tr class="${l.team === star.team ? "star" : ""}">
+            <td>${i + 1}</td>
+            <td class="team-cell">${swatch(l.team)} ${escapeHtml(l.team)}</td>
+            <td>G${l.gameId}</td>
+            <td>${l.runDiff > 0 ? "+" : ""}${l.runDiff}</td>
+            <td>${l.runs}</td>
+            <td>${l.allowed}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+/* ==================================================================
+   RENDER — Teams
+   ================================================================== */
+function renderTeams() {
+  const grid = document.getElementById("teams-grid");
+  grid.innerHTML = "";
+  for (const name of Object.keys(CONFIG.teams)) {
+    grid.appendChild(el(`
+      <div class="team-card">
+        ${swatch(name, "lg")}
+        <span>${escapeHtml(name)}</span>
+      </div>
+    `));
+  }
+}
+
+/* ==================================================================
+   RENDER — Home (stats + next game)
+   ================================================================== */
+function renderHome() {
+  document.getElementById("hero-title").textContent = CONFIG.tournamentTitle;
+  document.getElementById("hero-date").textContent = CONFIG.tournamentDateLabel;
+
+  const total = CONFIG.games.length;
+  const played = CONFIG.games.filter(g => isComplete(g.id)).length;
+  const remaining = total - played;
+  document.getElementById("home-stats").innerHTML = `
+    <div class="stat"><div class="stat-num">${total}</div><div class="stat-label">Games</div></div>
+    <div class="stat"><div class="stat-num">${played}</div><div class="stat-label">Played</div></div>
+    <div class="stat"><div class="stat-num">${remaining}</div><div class="stat-label">Remaining</div></div>
+  `;
+
+  const slot = nextSlot();
+  const nextHost = document.getElementById("home-next");
+  if (!slot) {
+    nextHost.innerHTML = `
+      <div class="card">
+        <h3>Tournament complete</h3>
+        <p>All games scored. Check the bracket for the result.</p>
+      </div>`;
+    return;
+  }
+  const rounds = [...new Set(slot.games.map(g => CONFIG.rounds[g.round] || g.round))];
+  const roundLabel = rounds.join(" / ");
+  const n = slot.games.length;
+  nextHost.innerHTML = `
+    <div class="card next-slot-card">
+      <div class="next-slot-header">
+        <div>
+          <div class="next-slot-tag">Up Next</div>
+          <div class="next-slot-time">${escapeHtml(slot.time)}</div>
+        </div>
+        <div class="next-slot-meta">
+          <strong>${escapeHtml(roundLabel)}</strong>
+          ${n} concurrent ${n === 1 ? "game" : "games"}
+        </div>
+      </div>
+      <div class="next-slot-games">
+        ${slot.games.map(renderNextSlotGame).join("")}
+      </div>
+    </div>`;
+}
+
+function renderNextSlotGame(g) {
+  const teamA = resolveTeam(g.teamA);
+  const teamB = resolveTeam(g.teamB);
+  const labelA = teamA || teamLabel(g.teamA);
+  const labelB = teamB || teamLabel(g.teamB);
+  return `
+    <div class="next-slot-game">
+      <div class="next-slot-game-head">
+        <span>Game ${g.id}</span>
+        <span>${escapeHtml(g.field)}</span>
+      </div>
+      <div class="team-row">
+        ${swatch(teamA)}
+        <span class="team-name ${teamA ? "" : "tbd"}">${escapeHtml(labelA)}</span>
+      </div>
+      <div class="team-row">
+        ${swatch(teamB)}
+        <span class="team-name ${teamB ? "" : "tbd"}">${escapeHtml(labelB)}</span>
+      </div>
+      ${renderRefBadges(g.id)}
+    </div>
+  `;
+}
+
+function nextSlot() {
+  // Returns the earliest time slot (in CONFIG order) that still has at
+  // least one incomplete game, plus all incomplete games at that slot.
+  // Concurrent games are bundled together so the UI reflects that all
+  // four fields are running at once.
+  const incomplete = CONFIG.games.filter(g => !isComplete(g.id));
+  if (incomplete.length === 0) return null;
+  const slotOrder = CONFIG.timeSlots.map(s => s.time);
+  let earliestIdx = Infinity;
+  for (const g of incomplete) {
+    const idx = slotOrder.indexOf(g.time);
+    if (idx >= 0 && idx < earliestIdx) earliestIdx = idx;
+  }
+  if (earliestIdx === Infinity) return null;
+  const time = slotOrder[earliestIdx];
+  const games = incomplete
+    .filter(g => g.time === time)
+    .sort((a, b) => a.id - b.id);
+  return { time, games };
+}
+
+/* ==================================================================
+   RENDER — Sticky next-game banner
+   ================================================================== */
+function renderNextBanner() {
+  const banner = document.getElementById("next-banner");
+  const slot = nextSlot();
+  if (!slot) {
+    banner.className = "next-banner complete";
+    banner.innerHTML = `<span class="label">Done</span><span>Tournament complete</span>`;
+    return;
+  }
+  const rounds = [...new Set(slot.games.map(g => CONFIG.rounds[g.round] || g.round))];
+  const n = slot.games.length;
+  banner.className = "next-banner";
+  banner.innerHTML = `
+    <span class="label">Up Next</span>
+    <strong>${escapeHtml(slot.time)}</strong>
+    <span>${escapeHtml(rounds.join(" / "))}</span>
+    <span class="game-meta">${n} concurrent ${n === 1 ? "game" : "games"}</span>
+  `;
+}
+
+/* ==================================================================
+   RENDER — Refs management (organiser-only)
+   ================================================================== */
+function renderRefs() {
+  const view = document.getElementById("refs-view");
+  if (!view) return;
+  if (auth.role !== "organiser") {
+    view.innerHTML = "";
+    return;
+  }
+  view.innerHTML = CONFIG.games.map(renderRefRow).join("");
+}
+
+function renderRefRow(g) {
+  const refs = state.gameRefs[g.id] || emptyGameRefs();
+  const conflicts = refsAtSameSlot(g.id);
+  const teamA = resolveTeam(g.teamA) || teamLabel(g.teamA);
+  const teamB = resolveTeam(g.teamB) || teamLabel(g.teamB);
+
+  const headSelectHtml = refSelectHtml({
+    gameId: g.id,
+    slot: "head",
+    selected: refs.head ? `ref:${refs.head}` : "",
+    pool: CONFIG.refs.filter(r => r.headEligible),
+    conflicts,
+    includeVolunteers: false,
+  });
+
+  const lineSelects = refs.lines.map((slot, i) => {
+    const selected =
+      slot && slot.ref ? `ref:${slot.ref}` :
+      slot && slot.team ? `team:${slot.team}` : "";
+    return refSelectHtml({
+      gameId: g.id,
+      slot: `line${i}`,
+      selected,
+      pool: CONFIG.refs,
+      conflicts,
+      includeVolunteers: true,
+    });
+  });
+
+  const headEmpty = !refs.head;
+  const linesEmpty = refs.lines.map(s => !s);
+
+  return `
+    <div class="ref-row" data-game="${g.id}">
+      <div class="ref-row-head">
+        <span class="ref-row-game">Game ${g.id} · ${escapeHtml(g.time)} · ${escapeHtml(g.field)}</span>
+        <span class="ref-row-teams">${escapeHtml(teamA)} v ${escapeHtml(teamB)}</span>
+      </div>
+      <div class="ref-row-slots">
+        <div class="ref-slot ${headEmpty ? "empty" : ""}">
+          <label>Head</label>
+          ${headSelectHtml}
+        </div>
+        ${refs.lines.map((_, i) => `
+          <div class="ref-slot ${linesEmpty[i] ? "empty" : ""}">
+            <label>Line ${i + 1}</label>
+            ${lineSelects[i]}
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function refSelectHtml({ gameId, slot, selected, pool, conflicts, includeVolunteers }) {
+  const opts = [`<option value="">— Unassigned —</option>`];
+  for (const r of pool) {
+    // Always include the currently-selected ref so the dropdown can
+    // display the selection even if the ref is also assigned elsewhere
+    // (avoids the option vanishing mid-edit).
+    const isSelected = selected === `ref:${r.id}`;
+    if (conflicts.has(r.id) && !isSelected) continue;
+    opts.push(
+      `<option value="ref:${escapeHtml(r.id)}"${isSelected ? " selected" : ""}>` +
+      `${escapeHtml(r.name)}${r.headEligible ? " ★" : ""}</option>`
+    );
+  }
+  if (includeVolunteers) {
+    opts.push(`<option value="" disabled>──────────</option>`);
+    for (const team of Object.keys(CONFIG.teams)) {
+      const isSelected = selected === `team:${team}`;
+      opts.push(
+        `<option value="team:${escapeHtml(team)}"${isSelected ? " selected" : ""}>` +
+        `Volunteer: ${escapeHtml(team)}</option>`
+      );
+    }
+  }
+  return `<select class="ref-select" data-game="${gameId}" data-slot="${slot}">${opts.join("")}</select>`;
+}
+
+/* ==================================================================
+   RENDER — Account (sign-in state, role-aware admin tools)
+   ================================================================== */
+function renderAccount() {
+  const view = document.getElementById("account-state");
+  if (!view) return;
+  view.dataset.role = auth.role;
+
+  let title, sub;
+  if (auth.role === "player") {
+    title = "Player view";
+    sub = "Read-only. Sign in as a ref or organiser to edit scores.";
+  } else if (auth.role === "ref") {
+    const r = getRef(auth.refId);
+    title = r ? `Signed in as ${r.name}` : "Signed in as ref";
+    const myGames = CONFIG.games
+      .filter(g => canEditScore(g.id))
+      .map(g => `G${g.id}`).join(", ");
+    sub = myGames
+      ? `Score editing unlocked for: ${myGames}.`
+      : "No games assigned to you yet — ask the organiser.";
+  } else {
+    title = "Signed in as organiser";
+    sub = "Score editing unlocked for all games. Refs tab is available.";
+  }
+
+  view.innerHTML = `
+    <div style="flex:1;min-width:0;">
+      <div><strong>${escapeHtml(title)}</strong> <span class="role-pill">${escapeHtml(auth.role)}</span></div>
+      <div style="color:#64748b;font-size:.8rem;margin-top:.15rem;">${escapeHtml(sub)}</div>
+    </div>
+    ${auth.role === "player"
+      ? `<button class="btn primary" id="account-signin">Sign in</button>`
+      : `<button class="btn" id="account-signout">Sign out</button>`}
+  `;
+
+  const signInBtn = document.getElementById("account-signin");
+  if (signInBtn) signInBtn.addEventListener("click", showAuthModal);
+  const signOutBtn = document.getElementById("account-signout");
+  if (signOutBtn) signOutBtn.addEventListener("click", signOut);
+}
+
+function applyRoleVisibility() {
+  document.body.dataset.role = auth.role;
+  const lock = document.getElementById("auth-lock");
+  if (!lock) return;
+  const icon = lock.querySelector(".auth-lock-icon");
+  const label = lock.querySelector(".auth-lock-label");
+  if (auth.role === "player") {
+    icon.textContent = "🔒";
+    label.textContent = "Sign in";
+    lock.classList.remove("unlocked");
+    lock.setAttribute("aria-label", "Sign in");
+  } else if (auth.role === "ref") {
+    const r = getRef(auth.refId);
+    icon.textContent = "🔓";
+    label.textContent = r ? r.name : "Ref";
+    lock.classList.add("unlocked");
+    lock.setAttribute("aria-label", `Signed in as ${r ? r.name : "ref"}. Tap to sign out.`);
+  } else {
+    icon.textContent = "🔓";
+    label.textContent = "Org";
+    lock.classList.add("unlocked");
+    lock.setAttribute("aria-label", "Signed in as organiser. Tap to sign out.");
+  }
+}
+
+/* ==================================================================
+   RENDER — top-level
+   ================================================================== */
+function renderAll() {
+  applyRoleVisibility();
+  renderNextBanner();
+  renderHome();
+  renderSchedule();
+  renderBracket();
+  renderStandings();
+  renderTeams();
+  renderRefs();
+  renderAccount();
+}
+
+/* ==================================================================
+   EVENTS
+   ================================================================== */
+document.addEventListener("input", (e) => {
+  const t = e.target;
+  if (!t.classList || !t.classList.contains("score-input")) return;
+  const id = parseInt(t.dataset.game, 10);
+  const side = t.dataset.side; // A or B
+  // Defence-in-depth: the input shouldn't even render when the user
+  // can't edit, but block at the data layer too in case it somehow
+  // appears in the DOM.
+  if (!canEditScore(id)) return;
+  const raw = t.value.trim();
+  const val = raw === "" ? null : Math.max(0, parseInt(raw, 10) || 0);
+  if (!state.games[id]) state.games[id] = { scoreA: null, scoreB: null };
+  state.games[id]["score" + side] = val;
+  saveState();
+  // Re-render everything except the schedule input the user is editing
+  // (we don't want to blow away focus). Schedule still re-renders the
+  // surrounding row labels; we restore focus afterwards.
+  renderAll();
+  const restored = document.querySelector(
+    `.score-input[data-game="${id}"][data-side="${side}"]`
+  );
+  if (restored) {
+    restored.focus();
+    const len = restored.value.length;
+    try { restored.setSelectionRange(len, len); } catch (_) {}
+  }
+});
+
+// Ref-assignment dropdown changes (organiser only — the section is
+// hidden by CSS for other roles, so the listener still fires safely
+// since canManageRefs() guards mutation).
+document.addEventListener("change", (e) => {
+  const t = e.target;
+  if (!t.classList || !t.classList.contains("ref-select")) return;
+  if (auth.role !== "organiser") return;
+  const id = parseInt(t.dataset.game, 10);
+  const slot = t.dataset.slot; // "head", "line0", "line1", ...
+  const v = t.value;
+  if (!state.gameRefs[id]) state.gameRefs[id] = emptyGameRefs();
+  if (slot === "head") {
+    state.gameRefs[id].head = v.startsWith("ref:") ? v.slice(4) : null;
+  } else if (slot.startsWith("line")) {
+    const idx = parseInt(slot.slice(4), 10);
+    if (Number.isNaN(idx)) return;
+    if (v === "") {
+      state.gameRefs[id].lines[idx] = null;
+    } else if (v.startsWith("ref:")) {
+      state.gameRefs[id].lines[idx] = { ref: v.slice(4) };
+    } else if (v.startsWith("team:")) {
+      state.gameRefs[id].lines[idx] = { team: v.slice(5) };
+    }
+  }
+  saveState();
+  renderAll();
+});
+
+/* ==================================================================
+   Sign-in modal — PIN, then ref-name picker if Ref PIN
+   ================================================================== */
+const authModal      = document.getElementById("auth-modal");
+const authPin        = document.getElementById("auth-pin");
+const authError      = document.getElementById("auth-error");
+const authStepPin    = document.getElementById("auth-step-pin");
+const authStepRef    = document.getElementById("auth-step-ref");
+const authRefSelect  = document.getElementById("auth-ref-select");
+const authConfirm    = document.getElementById("auth-confirm");
+const authCancel     = document.getElementById("auth-cancel");
+const authModalTitle = document.getElementById("auth-modal-title");
+
+let authPendingRef = false;
+
+function showAuthModal() {
+  authPendingRef = false;
+  authPin.value = "";
+  authError.hidden = true;
+  authStepPin.hidden = false;
+  authStepRef.hidden = true;
+  authConfirm.textContent = "Continue";
+  authModalTitle.textContent = "Sign in";
+  authModal.hidden = false;
+  setTimeout(() => authPin.focus(), 30);
+}
+
+function hideAuthModal() { authModal.hidden = true; }
+
+function signOut() {
+  if (!confirm("Sign out and return to player view?")) return;
+  auth = { ...DEFAULT_AUTH };
+  saveAuth();
+  renderAll();
+}
+
+document.getElementById("auth-lock").addEventListener("click", () => {
+  if (auth.role === "player") showAuthModal();
+  else signOut();
+});
+
+authCancel.addEventListener("click", hideAuthModal);
+authModal.addEventListener("click", (e) => {
+  if (e.target === authModal) hideAuthModal();
+});
+
+authConfirm.addEventListener("click", () => {
+  if (!authPendingRef) {
+    const pin = authPin.value.trim();
+    if (pin === CONFIG.pins.organiser) {
+      auth = { role: "organiser", refId: null };
+      saveAuth();
+      hideAuthModal();
+      renderAll();
+    } else if (pin === CONFIG.pins.ref) {
+      // Step 2: ref picks their name from the roster
+      authPendingRef = true;
+      authStepPin.hidden = true;
+      authStepRef.hidden = false;
+      authConfirm.textContent = "Sign in";
+      authModalTitle.textContent = "Who are you?";
+      authRefSelect.innerHTML = CONFIG.refs.map(r =>
+        `<option value="${escapeHtml(r.id)}">${escapeHtml(r.name)}${r.headEligible ? " ★" : ""}</option>`
+      ).join("");
+    } else {
+      authError.textContent = "Wrong PIN.";
+      authError.hidden = false;
+    }
+  } else {
+    const refId = authRefSelect.value;
+    if (!refId) return;
+    auth = { role: "ref", refId };
+    saveAuth();
+    hideAuthModal();
+    renderAll();
+  }
+});
+
+authPin.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); authConfirm.click(); }
+});
+
+document.getElementById("export-btn").addEventListener("click", () => {
+  const data = JSON.stringify({
+    exportedAt: new Date().toISOString(),
+    state,
+  }, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "kickball-2026-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("import-btn").addEventListener("click", () => {
+  document.getElementById("import-file").click();
+});
+document.getElementById("import-file").addEventListener("change", (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const obj = JSON.parse(ev.target.result);
+      const incoming = obj.state || obj; // accept either shape
+      if (!incoming.games) throw new Error("Missing games key");
+      // Merge into a clean baseline so unknown game ids are dropped.
+      const base = emptyState();
+      Object.keys(incoming.games).forEach(id => {
+        if (base.games[id]) base.games[id] = incoming.games[id];
+      });
+      state = base;
+      saveState();
+      renderAll();
+      alert("Imported.");
+    } catch (err) {
+      alert("Import failed: " + err.message);
+    } finally {
+      e.target.value = "";
+    }
+  };
+  reader.readAsText(f);
+});
+
+document.getElementById("reset-btn").addEventListener("click", () => {
+  if (!confirm("Reset all scores? This cannot be undone.")) return;
+  state = emptyState();
+  saveState();
+  renderAll();
+});
+
+/* ==================================================================
+   Tabs — explicit click → scroll, plus active highlight on scroll
+   ==================================================================
+   Anchor links (<a href="#schedule">) work in plain browser tabs but
+   can fail inside preview iframes where the scrollable ancestor isn't
+   the iframe's own window. Calling scrollIntoView() on the target
+   element makes the browser scroll whichever ancestor is actually
+   scrollable, which works in both cases.
+   ================================================================== */
+const tabs = document.querySelectorAll("nav.tabs a");
+function setActiveTab(id) {
+  tabs.forEach(a => a.classList.toggle("active", a.dataset.tab === id));
+}
+tabs.forEach(a => {
+  a.addEventListener("click", (e) => {
+    const id = a.dataset.tab;
+    const target = document.getElementById(id);
+    if (!target) return;
+    e.preventDefault();
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    history.replaceState(null, "", "#" + id);
+    setActiveTab(id);
+  });
+});
+
+const sectionIds = ["home", "schedule", "bracket", "standings", "teams", "refs"];
+const observer = new IntersectionObserver((entries) => {
+  for (const entry of entries) {
+    if (entry.isIntersecting) {
+      setActiveTab(entry.target.id);
+    }
+  }
+}, { rootMargin: "-40% 0px -55% 0px" });
+sectionIds.forEach(id => {
+  const node = document.getElementById(id);
+  if (node) observer.observe(node);
+});
+
+/* ==================================================================
+   Boot
+   ================================================================== */
+renderAll();
+
+// Re-render the next-game banner every minute (cheap; keeps it fresh
+// if a game completes via import on another device).
+setInterval(renderNextBanner, 60_000);
+</script>
+</body>
+</html>
