@@ -2,7 +2,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { TOURNAMENT } from '@/lib/tournament'
 import { useSyncStore } from '@/store/sync'
-import type { GameId, GameRefAssignment, GameScore } from '@/lib/schemas'
+import type { GameId, GameRefAssignment, GameScore, Ref, RefId } from '@/lib/schemas'
 
 /**
  * Write helpers — fire-and-forget upserts/deletes against Supabase.
@@ -64,6 +64,9 @@ export async function pushRefs(
 
 export async function pushReset(): Promise<void> {
   if (!supabase) return
+  // Reset clears scores + assignments only — the roster (refs table)
+  // is preserved deliberately so an organiser doesn't lose their
+  // ref list when they zero out the games.
   const [scores, refs] = await Promise.all([
     supabase.from('game_scores').delete().eq('tournament_id', TOURNAMENT.id),
     supabase.from('game_refs').delete().eq('tournament_id', TOURNAMENT.id),
@@ -72,6 +75,42 @@ export async function pushReset(): Promise<void> {
   if (err) {
     console.warn('pushReset failed:', err)
     toast.error('Failed to sync reset: ' + err)
+    return
+  }
+  useSyncStore.getState().markSync()
+}
+
+export async function pushRef(ref: Ref): Promise<void> {
+  if (!supabase) return
+  const { error } = await supabase
+    .from('refs')
+    .upsert(
+      {
+        tournament_id: TOURNAMENT.id,
+        ref_id: ref.id,
+        name: ref.name,
+        head_eligible: ref.headEligible,
+      },
+      { onConflict: 'tournament_id,ref_id' },
+    )
+  if (error) {
+    console.warn('pushRef failed:', error.message)
+    toast.error('Failed to save ref: ' + error.message)
+    return
+  }
+  useSyncStore.getState().markSync()
+}
+
+export async function pushDeleteRef(refId: RefId): Promise<void> {
+  if (!supabase) return
+  const { error } = await supabase
+    .from('refs')
+    .delete()
+    .eq('tournament_id', TOURNAMENT.id)
+    .eq('ref_id', refId)
+  if (error) {
+    console.warn('pushDeleteRef failed:', error.message)
+    toast.error('Failed to delete ref: ' + error.message)
     return
   }
   useSyncStore.getState().markSync()

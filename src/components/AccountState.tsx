@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useState } from 'react'
 import { useAuthStore } from '@/store/auth'
 import { useSyncStore } from '@/store/sync'
-import { TOURNAMENT } from '@/lib/tournament'
+import { useTournamentStore } from '@/store/tournament'
 import { Button } from '@/components/ui/button'
 import { SignInDialog } from '@/components/SignInDialog'
 import { cn } from '@/lib/utils'
@@ -14,9 +14,10 @@ export function AccountState() {
   const role = useAuthStore((s) => s.role)
   const refId = useAuthStore((s) => s.refId)
   const signOut = useAuthStore((s) => s.signOut)
+  const refsMap = useTournamentStore((s) => s.refs)
   const [open, setOpen] = useState(false)
 
-  const ref = refId ? TOURNAMENT.refs.find((r) => r.id === refId) : null
+  const ref = refId ? refsMap[refId] : null
 
   return (
     <>

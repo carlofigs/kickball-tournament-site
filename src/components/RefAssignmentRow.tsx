@@ -4,6 +4,7 @@ import { useTournamentStore } from '@/store/tournament'
 import { refsTakenForSlot, teamsPlayingAtSlot } from '@/lib/refs'
 import { resolveTeam, teamLabel } from '@/lib/games'
 import { computeStarTeam } from '@/lib/star'
+import { useMemo } from 'react'
 import {
   Select,
   SelectContent,
@@ -39,8 +40,16 @@ interface RefAssignmentRowProps {
 export function RefAssignmentRow({ game }: RefAssignmentRowProps) {
   const games = useTournamentStore((s) => s.games)
   const gameRefs = useTournamentStore((s) => s.gameRefs)
+  const refsMap = useTournamentStore((s) => s.refs)
   const setHead = useTournamentStore((s) => s.setHead)
   const setLine = useTournamentStore((s) => s.setLine)
+
+  // Stable name-sorted list for the dropdowns. Refs are an unsorted
+  // record server-side; alphabetical here makes the picker scannable.
+  const sortedRefs = useMemo(
+    () => Object.values(refsMap).sort((a, b) => a.name.localeCompare(b.name)),
+    [refsMap],
+  )
 
   const assignment: GameRefAssignment = gameRefs[game.id] ?? {
     head: null,
@@ -78,7 +87,7 @@ export function RefAssignmentRow({ game }: RefAssignmentRowProps) {
               <SelectItem value={SENTINEL_NONE}>— Unassigned —</SelectItem>
               <SelectGroup>
                 <SelectLabel>Head-eligible refs</SelectLabel>
-                {TOURNAMENT.refs
+                {sortedRefs
                   .filter((r) => r.headEligible)
                   .filter((r) => !takenForHead.has(r.id) || r.id === assignment.head)
                   .map((r) => (
@@ -104,7 +113,7 @@ export function RefAssignmentRow({ game }: RefAssignmentRowProps) {
               <SelectItem value={SENTINEL_NONE}>— Unassigned —</SelectItem>
               <SelectGroup>
                 <SelectLabel>Refs</SelectLabel>
-                {TOURNAMENT.refs
+                {sortedRefs
                   .filter((r) => !takenForLine.has(r.id) || isSlotRef(slot, r.id))
                   .map((r) => (
                     <SelectItem key={r.id} value={`ref:${r.id}`}>

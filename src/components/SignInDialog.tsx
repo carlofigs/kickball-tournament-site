@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useAuthStore } from '@/store/auth'
-import { TOURNAMENT } from '@/lib/tournament'
+import { useTournamentStore } from '@/store/tournament'
 
 interface SignInDialogProps {
   open: boolean
@@ -41,11 +41,16 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
   const signInOrganiser = useAuthStore((s) => s.signInOrganiser)
   const isRefPin = useAuthStore((s) => s.isRefPin)
   const signInRef = useAuthStore((s) => s.signInRef)
+  const refsMap = useTournamentStore((s) => s.refs)
+  const sortedRefs = useMemo(
+    () => Object.values(refsMap).sort((a, b) => a.name.localeCompare(b.name)),
+    [refsMap],
+  )
 
   const [step, setStep] = useState<Step>('pin')
   const [pin, setPin] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [chosenRef, setChosenRef] = useState<string>(TOURNAMENT.refs[0]?.id ?? '')
+  const [chosenRef, setChosenRef] = useState<string>(sortedRefs[0]?.id ?? '')
 
   // Reset when dialog reopens.
   useEffect(() => {
@@ -53,9 +58,9 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
       setStep('pin')
       setPin('')
       setError(null)
-      setChosenRef(TOURNAMENT.refs[0]?.id ?? '')
+      setChosenRef(sortedRefs[0]?.id ?? '')
     }
-  }, [open])
+  }, [open, sortedRefs])
 
   const handleConfirm = () => {
     if (step === 'pin') {
@@ -122,7 +127,7 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {TOURNAMENT.refs.map((r) => (
+                {sortedRefs.map((r) => (
                   <SelectItem key={r.id} value={r.id}>
                     {r.name}
                     {r.headEligible ? ' (head-eligible)' : ''}

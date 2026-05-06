@@ -102,6 +102,12 @@ export interface GameScore {
 export interface TournamentState {
   games: Record<GameId, GameScore>
   gameRefs: Record<GameId, GameRefAssignment>
+  /**
+   * Live ref roster — keyed by RefId. Bootstrap-seeded from
+   * `Tournament.refs` on first sync, but DB is the source of truth
+   * after that. Edits flow through the Refs page roster editor.
+   */
+  refs: Record<RefId, Ref>
 }
 
 /* ── Auth ──────────────────────────────────────────────────────────── */

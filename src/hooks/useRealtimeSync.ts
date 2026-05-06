@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import type { DbGameRefs, DbGameScore } from '@/lib/supabase'
+import type { DbGameRefs, DbGameScore, DbRef } from '@/lib/supabase'
 import { TOURNAMENT } from '@/lib/tournament'
 import { useTournamentStore } from '@/store/tournament'
 import { useSyncStore } from '@/store/sync'
@@ -20,6 +20,8 @@ import type { LineSlot } from '@/lib/schemas'
 export function useRealtimeSync() {
   const applyRemoteScore = useTournamentStore((s) => s.applyRemoteScore)
   const applyRemoteRefs = useTournamentStore((s) => s.applyRemoteRefs)
+  const applyRemoteRef = useTournamentStore((s) => s.applyRemoteRef)
+  const applyRemoteDeleteRef = useTournamentStore((s) => s.applyRemoteDeleteRef)
   const setStatus = useSyncStore((s) => s.setStatus)
   const markSync = useSyncStore((s) => s.markSync)
 
@@ -79,6 +81,31 @@ export function useRealtimeSync() {
           markSync()
         },
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'refs',
+          filter: `tournament_id=eq.${TOURNAMENT.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'DELETE') {
+            const row = payload.old as Partial<DbRef>
+            if (typeof row.ref_id === 'string') {
+              applyRemoteDeleteRef(row.ref_id)
+            }
+            return
+          }
+          const row = payload.new as DbRef
+          applyRemoteRef({
+            id: row.ref_id,
+            name: row.name,
+            headEligible: row.head_eligible,
+          })
+          markSync()
+        },
+      )
       .subscribe((status) => {
         // Map Supabase channel states to our sync indicator. The
         // channel reconnects automatically; we just surface what's
@@ -102,5 +129,12 @@ export function useRealtimeSync() {
     return () => {
       void supabase!.removeChannel(channel)
     }
-  }, [applyRemoteScore, applyRemoteRefs, setStatus, markSync])
+  }, [
+    applyRemoteScore,
+    applyRemoteRefs,
+    applyRemoteRef,
+    applyRemoteDeleteRef,
+    setStatus,
+    markSync,
+  ])
 }

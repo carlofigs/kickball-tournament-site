@@ -6,12 +6,13 @@ import type {
   GameRefAssignment,
   GameScore,
   LineSlot,
+  Ref,
   RefId,
   TeamName,
   TournamentState,
 } from '@/lib/schemas'
 import { TOURNAMENT } from '@/lib/tournament'
-import { pushRefs, pushReset, pushScoreDebounced } from '@/lib/sync'
+import { pushDeleteRef, pushRef, pushRefs, pushReset, pushScoreDebounced } from '@/lib/sync'
 
 /**
  * Tournament state — scores + ref assignments. Persisted to
@@ -34,7 +35,9 @@ function initialState(): TournamentState {
     games[g.id] = { scoreA: null, scoreB: null }
     gameRefs[g.id] = emptyAssignment()
   }
-  return { games, gameRefs }
+  // refs starts empty — `useInitialSync` seeds from CONFIG.refs on
+  // first run if the DB is empty, otherwise loads from the DB.
+  return { games, gameRefs, refs: {} }
 }
 
 interface TournamentStore extends TournamentState {
@@ -43,7 +46,15 @@ interface TournamentStore extends TournamentState {
   setHead: (id: GameId, refId: RefId | null) => void
   setLine: (id: GameId, idx: number, slot: LineSlot) => void
   resetAll: () => void
-  importState: (incoming: TournamentState) => void
+  /**
+   * Accepts a partial state — old export files predate the refs
+   * roster, and the initial-sync hook also imports without touching
+   * the roster. Missing keys are left as-is.
+   */
+  importState: (incoming: Partial<TournamentState>) => void
+  addRef: (name: string, headEligible: boolean) => Ref
+  updateRef: (id: RefId, patch: Partial<Omit<Ref, 'id'>>) => void
+  deleteRef: (id: RefId) => void
   /**
    * Realtime-only writers — applied when Supabase pushes a change
    * from another device. They MUST NOT push back, otherwise we'd
@@ -51,6 +62,8 @@ interface TournamentStore extends TournamentState {
    */
   applyRemoteScore: (id: GameId, score: GameScore) => void
   applyRemoteRefs: (id: GameId, refs: GameRefAssignment) => void
+  applyRemoteRef: (ref: Ref) => void
+  applyRemoteDeleteRef: (id: RefId) => void
 }
 
 export const useTournamentStore = create<TournamentStore>()(
@@ -89,8 +102,41 @@ export const useTournamentStore = create<TournamentStore>()(
       },
 
       resetAll: () => {
-        set(() => initialState())
+        // Preserve the roster on reset — we only clear scores +
+        // assignments, not the people refereeing.
+        const refs = useTournamentStore.getState().refs
+        set(() => ({ ...initialState(), refs }))
         void pushReset()
+      },
+
+      addRef: (name, headEligible) => {
+        const id =
+          typeof crypto !== 'undefined' && 'randomUUID' in crypto
+            ? crypto.randomUUID()
+            : `ref_${Date.now()}_${Math.random().toString(36).slice(2)}`
+        const ref: Ref = { id, name, headEligible }
+        set((s) => {
+          s.refs[id] = ref
+        })
+        void pushRef(ref)
+        return ref
+      },
+
+      updateRef: (id, patch) => {
+        set((s) => {
+          const existing = s.refs[id]
+          if (!existing) return
+          s.refs[id] = { ...existing, ...patch }
+        })
+        const updated = useTournamentStore.getState().refs[id]
+        if (updated) void pushRef(updated)
+      },
+
+      deleteRef: (id) => {
+        set((s) => {
+          delete s.refs[id]
+        })
+        void pushDeleteRef(id)
       },
 
       applyRemoteScore: (id, score) =>
@@ -103,20 +149,32 @@ export const useTournamentStore = create<TournamentStore>()(
           s.gameRefs[id] = refs
         }),
 
+      applyRemoteRef: (ref) =>
+        set((s) => {
+          s.refs[ref.id] = ref
+        }),
+
+      applyRemoteDeleteRef: (id) =>
+        set((s) => {
+          delete s.refs[id]
+        }),
+
       importState: (incoming) =>
         set((s) => {
           // Merge into a clean baseline so unknown game ids are dropped
           // (defends against stale exports targeting a different
           // tournament).
           const base = initialState()
-          for (const id of Object.keys(incoming.games || {})) {
+          const incomingGames = incoming.games ?? {}
+          for (const id of Object.keys(incomingGames)) {
             const numId = Number(id)
-            if (base.games[numId]) base.games[numId] = incoming.games[numId]
+            if (base.games[numId]) base.games[numId] = incomingGames[numId]
           }
-          for (const id of Object.keys(incoming.gameRefs || {})) {
+          const incomingGameRefs = incoming.gameRefs ?? {}
+          for (const id of Object.keys(incomingGameRefs)) {
             const numId = Number(id)
             if (base.gameRefs[numId]) {
-              const inc = incoming.gameRefs[numId]
+              const inc = incomingGameRefs[numId]
               base.gameRefs[numId] = {
                 head: inc.head ?? null,
                 lines: Array.from(
@@ -128,6 +186,9 @@ export const useTournamentStore = create<TournamentStore>()(
           }
           s.games = base.games
           s.gameRefs = base.gameRefs
+          // Refs are passed through verbatim — they're free-form, no
+          // tournament-specific shape to validate against.
+          if (incoming.refs) s.refs = { ...incoming.refs }
         }),
     })),
     {

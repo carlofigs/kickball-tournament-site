@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Lock, Unlock } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
-import { TOURNAMENT } from '@/lib/tournament'
+import { useTournamentStore } from '@/store/tournament'
 import { SignInDialog } from '@/components/SignInDialog'
 import { cn } from '@/lib/utils'
 
@@ -17,10 +17,11 @@ export function AuthLock() {
   const role = useAuthStore((s) => s.role)
   const refId = useAuthStore((s) => s.refId)
   const signOut = useAuthStore((s) => s.signOut)
+  const refsMap = useTournamentStore((s) => s.refs)
   const [open, setOpen] = useState(false)
 
   const isSignedIn = role !== 'player'
-  const ref = refId ? TOURNAMENT.refs.find((r) => r.id === refId) : null
+  const ref = refId ? refsMap[refId] : null
   const label =
     role === 'organiser' ? 'Organiser' : role === 'ref' ? ref?.name ?? 'Ref' : 'Sign in'
 

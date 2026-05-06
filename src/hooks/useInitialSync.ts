@@ -3,7 +3,15 @@ import { supabase } from '@/lib/supabase'
 import { TOURNAMENT } from '@/lib/tournament'
 import { useTournamentStore } from '@/store/tournament'
 import { useSyncStore } from '@/store/sync'
-import type { GameId, GameRefAssignment, GameScore, LineSlot } from '@/lib/schemas'
+import { pushRef } from '@/lib/sync'
+import type {
+  GameId,
+  GameRefAssignment,
+  GameScore,
+  LineSlot,
+  Ref,
+  RefId,
+} from '@/lib/schemas'
 
 /**
  * Mount-time fetch from Supabase + visibility-resume re-fetch.
@@ -31,7 +39,7 @@ export function useInitialSync() {
 
   const fetchAll = useCallback(async () => {
     if (!supabase) return
-    const [scoresResult, refsResult] = await Promise.all([
+    const [scoresResult, gameRefsResult, rosterResult] = await Promise.all([
       supabase
         .from('game_scores')
         .select('game_id, score_a, score_b')
@@ -40,15 +48,23 @@ export function useInitialSync() {
         .from('game_refs')
         .select('game_id, head, lines')
         .eq('tournament_id', TOURNAMENT.id),
+      supabase
+        .from('refs')
+        .select('ref_id, name, head_eligible')
+        .eq('tournament_id', TOURNAMENT.id),
     ])
 
-    if (scoresResult.error || refsResult.error) {
-      const msg = scoresResult.error?.message ?? refsResult.error?.message ?? 'unknown'
-      console.warn('Supabase fetch failed:', msg)
-      // Don't touch status — the realtime channel will reflect the
-      // real connection state. Transient REST hiccups shouldn't move
-      // the dot if the channel is still happily subscribed.
-      return
+    // Handle each result independently so a missing optional table
+    // (e.g. `refs` before its migration is applied) doesn't break the
+    // others. Status is left to the realtime channel.
+    if (scoresResult.error) {
+      console.warn('Supabase scores fetch failed:', scoresResult.error.message)
+    }
+    if (gameRefsResult.error) {
+      console.warn('Supabase game_refs fetch failed:', gameRefsResult.error.message)
+    }
+    if (rosterResult.error) {
+      console.warn('Supabase refs fetch failed:', rosterResult.error.message)
     }
 
     const games: Record<GameId, GameScore> = {}
@@ -57,14 +73,44 @@ export function useInitialSync() {
     }
 
     const gameRefs: Record<GameId, GameRefAssignment> = {}
-    for (const row of refsResult.data ?? []) {
+    for (const row of gameRefsResult.data ?? []) {
       gameRefs[row.game_id] = {
         head: row.head,
         lines: ((row.lines as LineSlot[] | null) ?? []) as LineSlot[],
       }
     }
 
-    importState({ games, gameRefs })
+    // Roster: if the refs query came back successful AND empty, seed
+    // from CONFIG so the organiser has a starting list. After seeding,
+    // DB is the source of truth — config is never re-applied. Race-
+    // safe across devices since each upsert is keyed on
+    // (tournament_id, ref_id).
+    //
+    // If the roster query errored (e.g. table doesn't exist yet), we
+    // skip the refs portion of the import — the existing local refs
+    // (from earlier runs or this session) are preserved.
+    const refs: Record<RefId, Ref> | undefined = rosterResult.error
+      ? undefined
+      : (() => {
+          const out: Record<RefId, Ref> = {}
+          if ((rosterResult.data ?? []).length === 0 && TOURNAMENT.refs.length > 0) {
+            for (const r of TOURNAMENT.refs) {
+              out[r.id] = { ...r }
+              void pushRef(r)
+            }
+          } else {
+            for (const row of rosterResult.data ?? []) {
+              out[row.ref_id] = {
+                id: row.ref_id,
+                name: row.name,
+                headEligible: row.head_eligible,
+              }
+            }
+          }
+          return out
+        })()
+
+    importState({ games, gameRefs, refs })
     markSync()
   }, [importState, markSync])
 

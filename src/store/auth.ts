@@ -42,7 +42,8 @@ export const useAuthStore = create<AuthStore>()(
       isRefPin: (pin) => pin === TOURNAMENT.pins.ref,
 
       signInRef: (refId) => {
-        if (!TOURNAMENT.refs.find((r) => r.id === refId)) return
+        // No static validation — the SignInDialog populates the
+        // picker from the live roster, and refs are dynamic now.
         set((s) => {
           s.role = 'ref'
           s.refId = refId
@@ -57,18 +58,10 @@ export const useAuthStore = create<AuthStore>()(
     })),
     {
       name: STORAGE_KEY,
-      // If a stored ref is no longer in the roster, drop them back to
-      // player on rehydrate so we never have a dangling refId.
-      onRehydrateStorage: () => (state) => {
-        if (!state) return
-        if (state.role === 'ref' && state.refId) {
-          const exists = TOURNAMENT.refs.some((r) => r.id === state.refId)
-          if (!exists) {
-            state.role = 'player'
-            state.refId = null
-          }
-        }
-      },
+      // No rehydrate-time roster validation: refs are dynamic now,
+      // and the live roster isn't loaded until after Supabase syncs.
+      // Stale refIds (ref deleted by another organiser) surface as
+      // "Unknown" in the UI rather than auto-signing the user out.
     },
   ),
 )

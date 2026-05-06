@@ -1,5 +1,5 @@
-import { TOURNAMENT } from '@/lib/tournament'
 import type { GameRefAssignment } from '@/lib/schemas'
+import { useTournamentStore } from '@/store/tournament'
 import { Swatch } from '@/components/Swatch'
 import { cn } from '@/lib/utils'
 
@@ -18,16 +18,25 @@ interface RefBadgesProps {
  * editable cells separately.
  */
 export function RefBadges({ assignment, compact }: RefBadgesProps) {
+  const refs = useTournamentStore((s) => s.refs)
   if (!assignment) return null
-  const head = assignment.head
-    ? TOURNAMENT.refs.find((r) => r.id === assignment.head)
-    : null
+  const head = assignment.head ? refs[assignment.head] : null
+  // Track if the assignment references a refId that's been deleted —
+  // we still surface it (with a warning style) so an organiser can
+  // see which game is mis-wired.
+  const headOrphan = assignment.head && !head
   const lineNodes = assignment.lines
     .map((slot, i) => {
       if (!slot) return null
       if ('ref' in slot) {
-        const r = TOURNAMENT.refs.find((rr) => rr.id === slot.ref)
-        if (!r) return null
+        const r = refs[slot.ref]
+        if (!r) {
+          return (
+            <Badge key={i} variant="missing" compact={compact}>
+              ⚠ Unknown ref
+            </Badge>
+          )
+        }
         return (
           <Badge key={i} compact={compact}>
             {r.name}
@@ -44,7 +53,7 @@ export function RefBadges({ assignment, compact }: RefBadgesProps) {
     })
     .filter(Boolean)
 
-  if (!head && lineNodes.length === 0) return null
+  if (!head && !headOrphan && lineNodes.length === 0) return null
 
   return (
     <div
@@ -61,13 +70,18 @@ export function RefBadges({ assignment, compact }: RefBadgesProps) {
           ★ {head.name}
         </Badge>
       )}
+      {headOrphan && (
+        <Badge variant="missing" compact={compact}>
+          ⚠ Unknown head ref
+        </Badge>
+      )}
       {lineNodes}
     </div>
   )
 }
 
 interface BadgeProps {
-  variant?: 'default' | 'head' | 'volunteer'
+  variant?: 'default' | 'head' | 'volunteer' | 'missing'
   compact?: boolean
   children: React.ReactNode
 }
@@ -81,6 +95,7 @@ function Badge({ variant = 'default', compact, children }: BadgeProps) {
         variant === 'default' && 'bg-secondary text-foreground',
         variant === 'head' && 'bg-pride-mint-deep text-pride-mint',
         variant === 'volunteer' && 'bg-amber-100 text-amber-900 italic',
+        variant === 'missing' && 'bg-red-100 text-red-800 italic',
       )}
     >
       {children}

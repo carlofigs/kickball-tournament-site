@@ -36,3 +36,11 @@ export interface DbGameRefs {
   lines: Array<{ ref: string } | { team: string } | null>
   updated_at: string
 }
+
+export interface DbRef {
+  tournament_id: string
+  ref_id: string
+  name: string
+  head_eligible: boolean
+  updated_at: string
+}
