@@ -130,7 +130,6 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
                 {sortedRefs.map((r) => (
                   <SelectItem key={r.id} value={r.id}>
                     {r.name}
-                    {r.headEligible ? ' (head-eligible)' : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
