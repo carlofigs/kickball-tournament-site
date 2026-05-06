@@ -16,9 +16,10 @@ export function Standings() {
       </h2>
       <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-3 text-sm mb-3">
         <strong>Star team rules:</strong> the best-performing R1 loser advances
-        to Game 12 as the 8th QF team. Sorted by run differential, then runs
-        scored, then head-to-head (see <code>STAR_TIEBREAKERS</code> in{' '}
-        <code>src/lib/star.ts</code> for the configurable order).
+        to Game 12 as the 8th QF team. Sorted by run differential, then lowest
+        total game score (5-4 ranks above 9-8), then head-to-head (see{' '}
+        <code>STAR_TIEBREAKERS</code> in <code>src/lib/star.ts</code> for the
+        configurable order).
       </div>
 
       {losers === null ? <PendingNotice /> : <LoserTable losers={losers} />}

@@ -16,9 +16,14 @@ import { isComplete } from '@/lib/games'
  * The first criterion to break a tie wins; if all tie, we fall back
  * to game number ascending so the result is deterministic.
  *
- * 1. runDiff   — runs scored minus runs allowed
- * 2. runs      — total runs scored
- * 3. headToHead — N/A in this format. Every R1 loser comes from a
+ * 1. runDiff       — runs scored minus runs allowed
+ * 2. lowGameTotal  — combined runs in the game (loser's runs +
+ *      winner's runs); LOWER total wins. Rationale: a tight low-
+ *      scoring loss (5-4, total 9) reflects better defence than a
+ *      tight high-scoring loss (9-8, total 17), so it ranks higher.
+ *      Implemented by negating the total — the comparator treats
+ *      higher as better.
+ * 3. headToHead   — N/A in this format. Every R1 loser comes from a
  *      different game, so no two candidate Stars ever played each
  *      other. Listed for completeness; returns 0 for all candidates
  *      and is effectively a no-op. It will start to matter only if
@@ -26,7 +31,7 @@ import { isComplete } from '@/lib/games'
  */
 export const STAR_TIEBREAKERS: Array<(loser: LoserRow) => number> = [
   (l) => l.runDiff,
-  (l) => l.runs,
+  (l) => -(l.runs + l.allowed),
   (_l) => 0, // head-to-head placeholder, see comment above
 ]
 
