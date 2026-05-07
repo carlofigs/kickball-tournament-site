@@ -67,17 +67,32 @@ export function useInitialSync() {
       console.warn('Supabase refs fetch failed:', rosterResult.error.message)
     }
 
-    const games: Record<GameId, GameScore> = {}
-    for (const row of scoresResult.data ?? []) {
-      games[row.game_id] = { scoreA: row.score_a, scoreB: row.score_b }
+    // Build a partial state of just the slices that came back ok.
+    // Slices that errored stay undefined → importState leaves the
+    // local copy alone rather than nuking it with empty defaults.
+    const partial: Partial<{
+      games: Record<GameId, GameScore>
+      gameRefs: Record<GameId, GameRefAssignment>
+      refs: Record<RefId, Ref>
+    }> = {}
+
+    if (!scoresResult.error) {
+      const games: Record<GameId, GameScore> = {}
+      for (const row of scoresResult.data ?? []) {
+        games[row.game_id] = { scoreA: row.score_a, scoreB: row.score_b }
+      }
+      partial.games = games
     }
 
-    const gameRefs: Record<GameId, GameRefAssignment> = {}
-    for (const row of gameRefsResult.data ?? []) {
-      gameRefs[row.game_id] = {
-        head: row.head,
-        lines: ((row.lines as LineSlot[] | null) ?? []) as LineSlot[],
+    if (!gameRefsResult.error) {
+      const gameRefs: Record<GameId, GameRefAssignment> = {}
+      for (const row of gameRefsResult.data ?? []) {
+        gameRefs[row.game_id] = {
+          head: row.head,
+          lines: ((row.lines as LineSlot[] | null) ?? []) as LineSlot[],
+        }
       }
+      partial.gameRefs = gameRefs
     }
 
     // Roster: if the refs query came back successful AND empty, seed
@@ -85,33 +100,31 @@ export function useInitialSync() {
     // DB is the source of truth — config is never re-applied. Race-
     // safe across devices since each upsert is keyed on
     // (tournament_id, ref_id).
-    //
-    // If the roster query errored (e.g. table doesn't exist yet), we
-    // skip the refs portion of the import — the existing local refs
-    // (from earlier runs or this session) are preserved.
-    const refs: Record<RefId, Ref> | undefined = rosterResult.error
-      ? undefined
-      : (() => {
-          const out: Record<RefId, Ref> = {}
-          if ((rosterResult.data ?? []).length === 0 && TOURNAMENT.refs.length > 0) {
-            for (const r of TOURNAMENT.refs) {
-              out[r.id] = { ...r }
-              void pushRef(r)
-            }
-          } else {
-            for (const row of rosterResult.data ?? []) {
-              out[row.ref_id] = {
-                id: row.ref_id,
-                name: row.name,
-                headEligible: row.head_eligible,
-                team: row.team ?? null,
-              }
-            }
+    if (!rosterResult.error) {
+      const out: Record<RefId, Ref> = {}
+      if ((rosterResult.data ?? []).length === 0 && TOURNAMENT.refs.length > 0) {
+        for (const r of TOURNAMENT.refs) {
+          out[r.id] = { ...r }
+          void pushRef(r)
+        }
+      } else {
+        for (const row of rosterResult.data ?? []) {
+          out[row.ref_id] = {
+            id: row.ref_id,
+            name: row.name,
+            headEligible: row.head_eligible,
+            team: row.team ?? null,
           }
-          return out
-        })()
+        }
+      }
+      partial.refs = out
+    }
 
-    importState({ games, gameRefs, refs })
+    // Only mark synced if at least one slice came back. Otherwise the
+    // Account page would lie ("Last sync: just now") on a totally
+    // failed fetch.
+    if (Object.keys(partial).length === 0) return
+    importState(partial)
     markSync()
   }, [importState, markSync])
 

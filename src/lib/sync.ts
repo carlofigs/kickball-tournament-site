@@ -118,12 +118,17 @@ export async function pushDeleteRef(refId: RefId): Promise<void> {
 }
 
 /**
- * Score pushes are debounced per-game so the user typing "1" → "12" →
- * "123" produces one upsert with the final value, not three. Ref
- * dropdown changes push immediately because they're discrete events.
+ * Per-id debouncers. Score pushes coalesce rapid keystrokes ("1" →
+ * "12" → "123" produces one upsert). Ref pushes coalesce roster
+ * editor name typing so renaming a ref doesn't fire one upsert per
+ * keystroke. Discrete events (head-eligible toggle, delete, add)
+ * still call pushRef / pushDeleteRef directly without going through
+ * the debouncer.
  */
 const scoreTimers = new Map<GameId, ReturnType<typeof setTimeout>>()
+const refTimers = new Map<RefId, ReturnType<typeof setTimeout>>()
 const SCORE_DEBOUNCE_MS = 300
+const REF_DEBOUNCE_MS = 400
 
 export function pushScoreDebounced(gameId: GameId, score: GameScore): void {
   const existing = scoreTimers.get(gameId)
@@ -133,4 +138,27 @@ export function pushScoreDebounced(gameId: GameId, score: GameScore): void {
     void pushScore(gameId, score)
   }, SCORE_DEBOUNCE_MS)
   scoreTimers.set(gameId, timer)
+}
+
+export function pushRefDebounced(ref: Ref): void {
+  const existing = refTimers.get(ref.id)
+  if (existing) clearTimeout(existing)
+  const timer = setTimeout(() => {
+    refTimers.delete(ref.id)
+    void pushRef(ref)
+  }, REF_DEBOUNCE_MS)
+  refTimers.set(ref.id, timer)
+}
+
+/**
+ * Cancel any pending debounced push for this refId. Called from the
+ * store's `deleteRef` so we don't race-recreate a row we just told
+ * the DB to delete.
+ */
+export function cancelPushRefDebounced(refId: RefId): void {
+  const t = refTimers.get(refId)
+  if (t) {
+    clearTimeout(t)
+    refTimers.delete(refId)
+  }
 }

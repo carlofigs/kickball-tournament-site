@@ -43,6 +43,7 @@ export function useRealtimeSync() {
             const row = payload.old as Partial<DbGameScore>
             if (typeof row.game_id === 'number') {
               applyRemoteScore(row.game_id, { scoreA: null, scoreB: null })
+              markSync()
             }
             return
           }
@@ -70,13 +71,21 @@ export function useRealtimeSync() {
                 head: null,
                 lines: Array<LineSlot>(TOURNAMENT.linesPerGame).fill(null),
               })
+              markSync()
             }
             return
           }
           const row = payload.new as DbGameRefs
+          // Normalise to the configured line count — defends against
+          // a future linesPerGame change leaving stale-shape rows in
+          // the DB.
+          const rawLines = (row.lines ?? []) as LineSlot[]
           applyRemoteRefs(row.game_id, {
             head: row.head,
-            lines: (row.lines ?? []) as LineSlot[],
+            lines: Array.from(
+              { length: TOURNAMENT.linesPerGame },
+              (_, i) => rawLines[i] ?? null,
+            ) as LineSlot[],
           })
           markSync()
         },
@@ -94,6 +103,7 @@ export function useRealtimeSync() {
             const row = payload.old as Partial<DbRef>
             if (typeof row.ref_id === 'string') {
               applyRemoteDeleteRef(row.ref_id)
+              markSync()
             }
             return
           }

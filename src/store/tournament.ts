@@ -8,18 +8,30 @@ import type {
   LineSlot,
   Ref,
   RefId,
-  TeamName,
   TournamentState,
 } from '@/lib/schemas'
 import { TOURNAMENT } from '@/lib/tournament'
-import { pushDeleteRef, pushRef, pushRefs, pushReset, pushScoreDebounced } from '@/lib/sync'
+import {
+  cancelPushRefDebounced,
+  pushDeleteRef,
+  pushRef,
+  pushRefDebounced,
+  pushRefs,
+  pushReset,
+  pushScoreDebounced,
+} from '@/lib/sync'
 
 /**
- * Tournament state — scores + ref assignments. Persisted to
- * localStorage; will be replaced (or fronted) by Supabase realtime in
- * Phase 3.
+ * Tournament state — scores, ref assignments, and the live ref roster.
+ * Supabase is the source of truth; this store mirrors it locally so
+ * the UI is fast and works offline. localStorage caches between page
+ * loads; `useInitialSync` overlays the latest from Supabase on mount;
+ * `useRealtimeSync` keeps it live afterward.
+ *
+ * Storage key is namespaced by tournament id so a future tournament
+ * doesn't pick up stale data from an earlier season.
  */
-const STORAGE_KEY = 'kickball-tournament-2026-v1'
+const STORAGE_KEY = `eckb-tournament-${TOURNAMENT.id}-v1`
 
 function emptyAssignment(): GameRefAssignment {
   return {
@@ -28,16 +40,34 @@ function emptyAssignment(): GameRefAssignment {
   }
 }
 
-function initialState(): TournamentState {
+/** A `lines` array of the right length for the active tournament,
+ *  filled in from `raw` where indices exist; remaining slots null. */
+function normalizeLines(raw: LineSlot[] | undefined | null): LineSlot[] {
+  return Array.from({ length: TOURNAMENT.linesPerGame }, (_, i) =>
+    (raw && raw[i]) || null,
+  )
+}
+
+function initialGames(): Record<GameId, GameScore> {
   const games: Record<GameId, GameScore> = {}
-  const gameRefs: Record<GameId, GameRefAssignment> = {}
   for (const g of TOURNAMENT.games) {
     games[g.id] = { scoreA: null, scoreB: null }
+  }
+  return games
+}
+
+function initialGameRefs(): Record<GameId, GameRefAssignment> {
+  const gameRefs: Record<GameId, GameRefAssignment> = {}
+  for (const g of TOURNAMENT.games) {
     gameRefs[g.id] = emptyAssignment()
   }
+  return gameRefs
+}
+
+function initialState(): TournamentState {
   // refs starts empty — `useInitialSync` seeds from CONFIG.refs on
   // first run if the DB is empty, otherwise loads from the DB.
-  return { games, gameRefs, refs: {} }
+  return { games: initialGames(), gameRefs: initialGameRefs(), refs: {} }
 }
 
 interface TournamentStore extends TournamentState {
@@ -85,20 +115,16 @@ export const useTournamentStore = create<TournamentStore>()(
 
       setHead: (id, refId) => {
         set((s) => {
-          if (!s.gameRefs[id]) s.gameRefs[id] = emptyAssignment()
           s.gameRefs[id].head = refId
         })
-        const refs = useTournamentStore.getState().gameRefs[id]
-        if (refs) void pushRefs(id, refs)
+        void pushRefs(id, useTournamentStore.getState().gameRefs[id])
       },
 
       setLine: (id, idx, slot) => {
         set((s) => {
-          if (!s.gameRefs[id]) s.gameRefs[id] = emptyAssignment()
           s.gameRefs[id].lines[idx] = slot
         })
-        const refs = useTournamentStore.getState().gameRefs[id]
-        if (refs) void pushRefs(id, refs)
+        void pushRefs(id, useTournamentStore.getState().gameRefs[id])
       },
 
       resetAll: () => {
@@ -131,13 +157,18 @@ export const useTournamentStore = create<TournamentStore>()(
           s.refs[id] = { ...existing, ...patch }
         })
         const updated = useTournamentStore.getState().refs[id]
-        if (updated) void pushRef(updated)
+        // Debounced so name typing in the roster editor coalesces
+        // into one upsert rather than firing per keystroke.
+        if (updated) pushRefDebounced(updated)
       },
 
       deleteRef: (id) => {
         set((s) => {
           delete s.refs[id]
         })
+        // Cancel any pending debounced update — otherwise a delayed
+        // updateRef timer could re-create the row we're deleting.
+        cancelPushRefDebounced(id)
         void pushDeleteRef(id)
       },
 
@@ -163,69 +194,64 @@ export const useTournamentStore = create<TournamentStore>()(
 
       importState: (incoming) =>
         set((s) => {
-          // Merge into a clean baseline so unknown game ids are dropped
-          // (defends against stale exports targeting a different
-          // tournament).
-          const base = initialState()
-          const incomingGames = incoming.games ?? {}
-          for (const id of Object.keys(incomingGames)) {
-            const numId = Number(id)
-            if (base.games[numId]) base.games[numId] = incomingGames[numId]
+          // Each slice is only overwritten if the caller actually
+          // supplied it. This matters for partial imports — if a
+          // Supabase fetch errored on one of the three tables, we
+          // leave that slice as-is rather than nuking local progress
+          // with empty defaults.
+          if (incoming.games) {
+            const base = initialGames()
+            for (const id of Object.keys(incoming.games)) {
+              const numId = Number(id)
+              if (base[numId]) base[numId] = incoming.games[numId]
+            }
+            s.games = base
           }
-          const incomingGameRefs = incoming.gameRefs ?? {}
-          for (const id of Object.keys(incomingGameRefs)) {
-            const numId = Number(id)
-            if (base.gameRefs[numId]) {
-              const inc = incomingGameRefs[numId]
-              base.gameRefs[numId] = {
-                head: inc.head ?? null,
-                lines: Array.from(
-                  { length: TOURNAMENT.linesPerGame },
-                  (_, i) => (inc.lines && inc.lines[i]) || null,
-                ) as LineSlot[],
+          if (incoming.gameRefs) {
+            const base = initialGameRefs()
+            for (const id of Object.keys(incoming.gameRefs)) {
+              const numId = Number(id)
+              if (base[numId]) {
+                const inc = incoming.gameRefs[numId]
+                base[numId] = {
+                  head: inc.head ?? null,
+                  lines: normalizeLines(inc.lines),
+                }
               }
             }
+            s.gameRefs = base
           }
-          s.games = base.games
-          s.gameRefs = base.gameRefs
-          // Refs are passed through verbatim — they're free-form, no
-          // tournament-specific shape to validate against.
+          // Refs are free-form (no tournament-specific shape).
           if (incoming.refs) s.refs = { ...incoming.refs }
         }),
     })),
     {
       name: STORAGE_KEY,
-      // On rehydrate, ensure shape matches the active tournament:
-      // unknown game ids are dropped, missing ones get defaulted.
+      // On rehydrate, reconcile cached state with the active
+      // tournament's shape: unknown game ids are dropped, missing
+      // ones get defaulted, line arrays normalised to the configured
+      // length.
       onRehydrateStorage: () => (state) => {
         if (!state) return
-        const base = initialState()
-        for (const id of Object.keys(base.games)) {
-          const numId = Number(id)
-          if (!state.games[numId]) state.games[numId] = base.games[numId]
-        }
+        const games = initialGames()
         for (const id of Object.keys(state.games)) {
           const numId = Number(id)
-          if (!base.games[numId]) delete state.games[numId]
+          if (games[numId]) games[numId] = state.games[numId]
         }
-        for (const id of Object.keys(base.gameRefs)) {
+        state.games = games
+
+        const gameRefs = initialGameRefs()
+        for (const id of Object.keys(state.gameRefs)) {
           const numId = Number(id)
-          if (!state.gameRefs[numId]) state.gameRefs[numId] = base.gameRefs[numId]
-          else {
+          if (gameRefs[numId]) {
             const inc = state.gameRefs[numId]
-            state.gameRefs[numId] = {
+            gameRefs[numId] = {
               head: inc.head ?? null,
-              lines: Array.from(
-                { length: TOURNAMENT.linesPerGame },
-                (_, i) => (inc.lines && inc.lines[i]) || null,
-              ) as LineSlot[],
+              lines: normalizeLines(inc.lines),
             }
           }
         }
-        for (const id of Object.keys(state.gameRefs)) {
-          const numId = Number(id)
-          if (!base.gameRefs[numId]) delete state.gameRefs[numId]
-        }
+        state.gameRefs = gameRefs
       },
     },
   ),
@@ -240,6 +266,3 @@ export function exportTournamentState(): string {
     2,
   )
 }
-
-// Type-only exports kept in case future code needs the local helpers.
-export type { TeamName }

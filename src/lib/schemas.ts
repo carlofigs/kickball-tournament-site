@@ -4,7 +4,7 @@
  *
  * If you change a shape, expect a typecheck error somewhere; that's the
  * desired behaviour. New tournaments slot in by writing a `Tournament`
- * value (see lib/config.ts) — all other code reads from it generically.
+ * value (see lib/tournaments/) — all other code reads from it generically.
  */
 
 export type TeamName = string

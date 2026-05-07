@@ -12,7 +12,7 @@ import { TOURNAMENT } from '@/lib/tournament'
  * reads the source. Acceptable for tournament-day trust between
  * organisers/refs/players who know each other.
  */
-const STORAGE_KEY = 'kickball-tournament-2026-auth-v1'
+const STORAGE_KEY = `eckb-tournament-${TOURNAMENT.id}-auth-v1`
 
 interface AuthStore extends AuthState {
   /** Returns true on success; false on wrong PIN. */

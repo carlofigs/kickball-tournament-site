@@ -5,12 +5,16 @@ import { isSupabaseConfigured } from '@/lib/supabase'
  * Connection status with Supabase. Drives the sticky-bar status dot
  * and the "Last sync" line on Account.
  *
+ * The realtime channel is the single source of truth for status —
+ * fetches don't touch it (they'd lie on visibility-resume re-fetches
+ * where the channel is still happily SUBSCRIBED).
+ *
  *   - "offline":      no Supabase configured (env vars missing) —
  *                     pure localStorage mode, dot stays grey
- *   - "connecting":   initial fetch in progress
- *   - "connected":    realtime channel SUBSCRIBED + last fetch ok
- *   - "reconnecting": channel TIMED_OUT or transient error
- *   - "error":        channel CHANNEL_ERROR / CLOSED unexpectedly
+ *   - "connecting":   bootstrap until channel SUBSCRIBED fires
+ *   - "connected":    realtime channel SUBSCRIBED
+ *   - "reconnecting": channel TIMED_OUT / CLOSED, retrying
+ *   - "error":        channel CHANNEL_ERROR
  *
  * `lastSyncAt` is bumped on every successful read or write so the
  * Account page can show how recent things are.

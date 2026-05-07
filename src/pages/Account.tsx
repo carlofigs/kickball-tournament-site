@@ -18,11 +18,12 @@ export function Account() {
 
 /**
  * Organiser-only admin tools. Export/import bundle scores + ref
- * assignments together — share between phones to sync. Auth state is
- * NOT exported (lives in a separate localStorage key).
+ * assignments together — useful as a manual backup or for moving
+ * data between Supabase projects. Auth state is NOT exported (lives
+ * in a separate localStorage key).
  *
- * In Phase 3 these will be replaced by realtime sync; for now the
- * manual export/import keeps multiple devices loosely in step.
+ * Day-to-day cross-device sync goes through Supabase realtime; these
+ * tools are for backup, recovery, and bootstrapping a new tournament.
  */
 function AdminTools() {
   const importState = useTournamentStore((s) => s.importState)
@@ -73,9 +74,10 @@ function AdminTools() {
     <div className="bg-card border rounded-lg p-4">
       <h3 className="font-extrabold text-base mb-1">Organiser tools</h3>
       <p className="text-sm text-muted-foreground mb-3">
-        Scores and ref assignments save to this device. To share state across
-        phones, export the JSON, send it to another organiser, and import on
-        their device. Realtime sync arrives in Phase 3.
+        Day-to-day sync between phones happens automatically via Supabase
+        realtime. These tools are for backups and one-off transfers — export
+        the JSON to keep a copy, or import to seed a new device or recover
+        from a wipe.
       </p>
       <div className="flex flex-wrap gap-2">
         <Button onClick={handleExport}>Export JSON</Button>
