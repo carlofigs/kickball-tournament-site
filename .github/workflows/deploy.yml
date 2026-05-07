@@ -13,6 +13,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Opt JS-based actions onto Node 24 ahead of GitHub's June 2026 default
+# switch — silences the per-run deprecation annotations and tests the
+# new runtime now rather than discovering breakage on switch-over day.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 permissions:
   contents: read
   pages: write
@@ -43,6 +49,9 @@ jobs:
 
       - name: Type-check
         run: npm run lint
+
+      - name: Test
+        run: npm test
 
       - name: Build
         env:

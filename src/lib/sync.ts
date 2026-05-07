@@ -31,8 +31,7 @@ async function pushScore(gameId: GameId, score: GameScore): Promise<void> {
       { onConflict: 'tournament_id,game_id' },
     )
   if (error) {
-    console.warn('pushScore failed:', error.message)
-    toast.error('Failed to sync score: ' + error.message)
+    syncErrorToast('Failed to sync score: ' + error.message, 'pushScore')
     return
   }
   useSyncStore.getState().markSync()
@@ -55,8 +54,7 @@ export async function pushRefs(
       { onConflict: 'tournament_id,game_id' },
     )
   if (error) {
-    console.warn('pushRefs failed:', error.message)
-    toast.error('Failed to sync ref assignment: ' + error.message)
+    syncErrorToast('Failed to sync ref assignment: ' + error.message, 'pushRefs')
     return
   }
   useSyncStore.getState().markSync()
@@ -73,8 +71,7 @@ export async function pushReset(): Promise<void> {
   ])
   const err = scores.error?.message ?? refs.error?.message
   if (err) {
-    console.warn('pushReset failed:', err)
-    toast.error('Failed to sync reset: ' + err)
+    syncErrorToast('Failed to sync reset: ' + err, 'pushReset')
     return
   }
   useSyncStore.getState().markSync()
@@ -95,8 +92,7 @@ export async function pushRef(ref: Ref): Promise<void> {
       { onConflict: 'tournament_id,ref_id' },
     )
   if (error) {
-    console.warn('pushRef failed:', error.message)
-    toast.error('Failed to save ref: ' + error.message)
+    syncErrorToast('Failed to save ref: ' + error.message, 'pushRef')
     return
   }
   useSyncStore.getState().markSync()
@@ -110,11 +106,23 @@ export async function pushDeleteRef(refId: RefId): Promise<void> {
     .eq('tournament_id', TOURNAMENT.id)
     .eq('ref_id', refId)
   if (error) {
-    console.warn('pushDeleteRef failed:', error.message)
-    toast.error('Failed to delete ref: ' + error.message)
+    syncErrorToast('Failed to delete ref: ' + error.message, 'pushDeleteRef')
     return
   }
   useSyncStore.getState().markSync()
+}
+
+/**
+ * Surface a sync failure to the user with one shared toast slot per
+ * push helper. Sonner's `id` parameter coalesces — a fresh error
+ * replaces the old toast in place rather than stacking. Stops a
+ * sustained outage from spamming 14 red toasts when scores rapid-
+ * fail. Latest message wins so the user always sees the most recent
+ * cause; console retains the full history for debugging.
+ */
+function syncErrorToast(message: string, source: string): void {
+  console.warn(source + ' failed:', message)
+  toast.error(message, { id: `sync-error:${source}` })
 }
 
 /**
