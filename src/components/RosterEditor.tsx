@@ -1,9 +1,21 @@
 import { useMemo, useState } from 'react'
 import { Trash2, UserPlus } from 'lucide-react'
+import { TOURNAMENT } from '@/lib/tournament'
 import { useTournamentStore } from '@/store/tournament'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Swatch } from '@/components/Swatch'
+
+// Sentinel for "no team" — Radix Select rejects empty string values.
+const TEAM_NONE = '__none__'
 
 /**
  * Organiser-only roster table. Add a ref, rename inline, toggle
@@ -53,51 +65,84 @@ export function RosterEditor() {
           No refs yet — add one below.
         </div>
       ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
-              <th className="text-left px-3 py-2 font-extrabold">Name</th>
-              <th className="px-3 py-2 font-extrabold w-32 sm:w-40">Head-eligible</th>
-              <th className="px-3 py-2 font-extrabold w-12" aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
-            {sortedRefs.map((r) => (
-              <tr key={r.id} className="border-t">
-                <td className="px-3 py-1.5">
-                  <Input
-                    value={r.name}
-                    onChange={(e) => updateRef(r.id, { name: e.target.value })}
-                    className="h-8 text-sm"
-                    aria-label={`Name for ref ${r.name}`}
-                  />
-                </td>
-                <td className="px-3 py-1.5 text-center">
-                  <input
-                    type="checkbox"
-                    checked={r.headEligible}
-                    onChange={(e) =>
-                      updateRef(r.id, { headEligible: e.target.checked })
-                    }
-                    className="h-4 w-4 accent-primary cursor-pointer"
-                    aria-label={`${r.name} head-eligible`}
-                  />
-                </td>
-                <td className="px-2 py-1.5 text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-red-700 hover:bg-red-50"
-                    onClick={() => handleDelete(r.id, r.name)}
-                    aria-label={`Remove ${r.name}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[560px]">
+            <thead>
+              <tr className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+                <th className="text-left px-3 py-2 font-extrabold">Name</th>
+                <th className="px-3 py-2 font-extrabold w-24">Head</th>
+                <th className="text-left px-3 py-2 font-extrabold w-44">
+                  Team <span className="font-normal normal-case text-muted-foreground/80">(optional)</span>
+                </th>
+                <th className="px-3 py-2 font-extrabold w-12" aria-label="Actions" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {sortedRefs.map((r) => (
+                <tr key={r.id} className="border-t">
+                  <td className="px-3 py-1.5">
+                    <Input
+                      value={r.name}
+                      onChange={(e) => updateRef(r.id, { name: e.target.value })}
+                      className="h-8 text-sm"
+                      aria-label={`Name for ref ${r.name}`}
+                    />
+                  </td>
+                  <td className="px-3 py-1.5 text-center">
+                    <input
+                      type="checkbox"
+                      checked={r.headEligible}
+                      onChange={(e) =>
+                        updateRef(r.id, { headEligible: e.target.checked })
+                      }
+                      className="h-4 w-4 accent-primary cursor-pointer"
+                      aria-label={`${r.name} head-eligible`}
+                    />
+                  </td>
+                  <td className="px-3 py-1.5">
+                    <Select
+                      value={r.team ?? TEAM_NONE}
+                      onValueChange={(v) =>
+                        updateRef(r.id, {
+                          team: v === TEAM_NONE ? null : v,
+                        })
+                      }
+                    >
+                      <SelectTrigger
+                        className="h-8 text-sm"
+                        aria-label={`Team for ${r.name}`}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={TEAM_NONE}>— No team —</SelectItem>
+                        {TOURNAMENT.teams.map((t) => (
+                          <SelectItem key={t.name} value={t.name}>
+                            <span className="inline-flex items-center gap-2">
+                              <Swatch team={t.name} size="sm" />
+                              {t.name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </td>
+                  <td className="px-2 py-1.5 text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-red-700 hover:bg-red-50"
+                      onClick={() => handleDelete(r.id, r.name)}
+                      aria-label={`Remove ${r.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Add-ref row */}

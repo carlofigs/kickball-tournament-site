@@ -56,6 +56,13 @@ export interface Ref {
   name: string
   /** Only head-eligible refs appear in Head dropdowns. */
   headEligible: boolean
+  /**
+   * Optional team affiliation. When set, the ref is excluded from
+   * assignment dropdowns at any time slot where their team is
+   * playing (they can't ref while they're on the field). Null /
+   * undefined = no affiliation, no extra filtering.
+   */
+  team?: TeamName | null
 }
 
 /** A single line-ref slot; null means unassigned. */

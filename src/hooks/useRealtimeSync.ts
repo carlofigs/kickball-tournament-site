@@ -102,6 +102,7 @@ export function useRealtimeSync() {
             id: row.ref_id,
             name: row.name,
             headEligible: row.head_eligible,
+            team: row.team ?? null,
           })
           markSync()
         },

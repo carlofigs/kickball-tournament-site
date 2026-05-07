@@ -42,5 +42,7 @@ export interface DbRef {
   ref_id: string
   name: string
   head_eligible: boolean
+  /** Optional team affiliation; null when the ref isn't on a roster. */
+  team: string | null
   updated_at: string
 }

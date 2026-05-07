@@ -114,7 +114,9 @@ export const useTournamentStore = create<TournamentStore>()(
           typeof crypto !== 'undefined' && 'randomUUID' in crypto
             ? crypto.randomUUID()
             : `ref_${Date.now()}_${Math.random().toString(36).slice(2)}`
-        const ref: Ref = { id, name, headEligible }
+        // New refs default to no team — set later via the editor's
+        // team picker. Keeps the add-form minimal.
+        const ref: Ref = { id, name, headEligible, team: null }
         set((s) => {
           s.refs[id] = ref
         })

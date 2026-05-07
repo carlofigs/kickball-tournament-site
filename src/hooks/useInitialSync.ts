@@ -50,7 +50,7 @@ export function useInitialSync() {
         .eq('tournament_id', TOURNAMENT.id),
       supabase
         .from('refs')
-        .select('ref_id, name, head_eligible')
+        .select('ref_id, name, head_eligible, team')
         .eq('tournament_id', TOURNAMENT.id),
     ])
 
@@ -104,6 +104,7 @@ export function useInitialSync() {
                 id: row.ref_id,
                 name: row.name,
                 headEligible: row.head_eligible,
+                team: row.team ?? null,
               }
             }
           }

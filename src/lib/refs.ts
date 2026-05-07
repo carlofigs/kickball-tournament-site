@@ -3,6 +3,7 @@ import type {
   GameId,
   GameRefAssignment,
   GameScore,
+  Ref,
   RefId,
   TeamName,
   Tournament,
@@ -88,6 +89,29 @@ export function refsTakenForSlot(
     if (!isExcepted && slot && 'ref' in slot) taken.add(slot.ref)
   })
   return taken
+}
+
+/**
+ * Refs whose team is playing at the same time slot as `gameId`. They
+ * can't ref because they're on the field as players. Hidden from the
+ * head + line dropdowns, just like refs already assigned elsewhere.
+ *
+ * Refs without a `team` affiliation are never filtered by this rule.
+ * Mirrors the volunteer-team filter (`teamsPlayingAtSlot`) but
+ * applied to named roster refs.
+ */
+export function refsBusyAsPlayers(
+  t: Tournament,
+  refsMap: Record<RefId, Ref>,
+  scores: Record<GameId, GameScore>,
+  gameId: GameId,
+): Set<RefId> {
+  const playingTeams = teamsPlayingAtSlot(t, scores, gameId)
+  const busy = new Set<RefId>()
+  for (const ref of Object.values(refsMap)) {
+    if (ref.team && playingTeams.has(ref.team)) busy.add(ref.id)
+  }
+  return busy
 }
 
 /**

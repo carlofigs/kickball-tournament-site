@@ -1,7 +1,7 @@
 import type { Game, GameRefAssignment, LineSlot, RefId, TeamName } from '@/lib/schemas'
 import { TOURNAMENT } from '@/lib/tournament'
 import { useTournamentStore } from '@/store/tournament'
-import { refsTakenForSlot, teamsPlayingAtSlot } from '@/lib/refs'
+import { refsBusyAsPlayers, refsTakenForSlot, teamsPlayingAtSlot } from '@/lib/refs'
 import { resolveTeam, teamLabel } from '@/lib/games'
 import { computeStarTeam } from '@/lib/star'
 import { useMemo } from 'react'
@@ -56,6 +56,10 @@ export function RefAssignmentRow({ game }: RefAssignmentRowProps) {
     lines: Array(TOURNAMENT.linesPerGame).fill(null),
   }
   const playingTeams = teamsPlayingAtSlot(TOURNAMENT, games, game.id)
+  // Refs whose own team is playing at this time slot — they're on
+  // the field as players, so they can't ref. Same currently-selected
+  // exception so an existing assignment doesn't disappear from view.
+  const refsPlayingNow = refsBusyAsPlayers(TOURNAMENT, refsMap, games, game.id)
 
   // Resolve team labels (for the row header).
   const getStar = () => computeStarTeam(TOURNAMENT, games)
@@ -90,6 +94,7 @@ export function RefAssignmentRow({ game }: RefAssignmentRowProps) {
                 {sortedRefs
                   .filter((r) => r.headEligible)
                   .filter((r) => !takenForHead.has(r.id) || r.id === assignment.head)
+                  .filter((r) => !refsPlayingNow.has(r.id) || r.id === assignment.head)
                   .map((r) => (
                     <SelectItem key={r.id} value={`ref:${r.id}`}>
                       {r.name}
@@ -115,6 +120,7 @@ export function RefAssignmentRow({ game }: RefAssignmentRowProps) {
                 <SelectLabel>Refs</SelectLabel>
                 {sortedRefs
                   .filter((r) => !takenForLine.has(r.id) || isSlotRef(slot, r.id))
+                  .filter((r) => !refsPlayingNow.has(r.id) || isSlotRef(slot, r.id))
                   .map((r) => (
                     <SelectItem key={r.id} value={`ref:${r.id}`}>
                       {r.name}

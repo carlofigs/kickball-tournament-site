@@ -90,6 +90,7 @@ export async function pushRef(ref: Ref): Promise<void> {
         ref_id: ref.id,
         name: ref.name,
         head_eligible: ref.headEligible,
+        team: ref.team ?? null,
       },
       { onConflict: 'tournament_id,ref_id' },
     )
