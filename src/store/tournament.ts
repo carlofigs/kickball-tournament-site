@@ -32,7 +32,7 @@ import {
  * Storage key is namespaced by tournament id so a future tournament
  * doesn't pick up stale data from an earlier season.
  */
-const STORAGE_KEY = `eckb-tournament-${TOURNAMENT.id}-v1`
+const STORAGE_KEY = `kickball-tournament-${TOURNAMENT.id}-v1`
 
 function emptyAssignment(): GameRefAssignment {
   return {

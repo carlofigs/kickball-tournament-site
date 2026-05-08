@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // identically to production.
 export default defineConfig({
   plugins: [react()],
-  base: '/eckb-tournament-site/',
+  base: '/kickball-tournament-site/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

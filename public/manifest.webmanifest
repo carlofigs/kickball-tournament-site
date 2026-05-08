@@ -1,24 +1,10 @@
 {
-  "name": "ECKB Tournament",
-  "short_name": "ECKB",
-  "description": "Emerald City Kickball single-day tournament tracker — schedule, bracket, standings, and ref assignments with realtime sync.",
-  "start_url": "/eckb-tournament-site/",
-  "scope": "/eckb-tournament-site/",
+  "name": "Summer 2026 Tournament",
+  "short_name": "Summer 2026",
+  "description": "Single-day kickball tournament tracker — schedule, bracket, standings, and ref assignments with realtime sync.",
+  "start_url": "/kickball-tournament-site/",
+  "scope": "/kickball-tournament-site/",
   "display": "standalone",
   "background_color": "#fafafa",
-  "theme_color": "#0a0a0a",
-  "icons": [
-    {
-      "src": "/eckb-tournament-site/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/eckb-tournament-site/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
+  "theme_color": "#0a0a0a"
 }

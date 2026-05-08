@@ -28,7 +28,6 @@ const TABS: Array<{
   { to: '/schedule',  label: 'Schedule' },
   { to: '/bracket',   label: 'Bracket' },
   { to: '/standings', label: 'Standings' },
-  { to: '/teams',     label: 'Teams' },
   { to: '/refs',      label: 'Refs', orgOnly: true },
   { to: '/account',   label: 'Account' },
 ]

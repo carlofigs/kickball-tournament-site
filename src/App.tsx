@@ -7,8 +7,8 @@ import { useInitialSync } from '@/hooks/useInitialSync'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 
 // `basename` is derived from Vite's `base` config (set in
-// vite.config.ts to "/eckb-tournament-site/"). Single source of
-// truth — change the project name there and routing follows.
+// vite.config.ts). Single source of truth — change the project name
+// there and routing follows.
 const BASENAME = import.meta.env.BASE_URL.replace(/\/$/, '')
 
 /* ── Lazy routes ─────────────────────────────────────────────────────
@@ -27,7 +27,6 @@ const Bracket = lazy(() =>
 const Standings = lazy(() =>
   import('@/pages/Standings').then((m) => ({ default: m.Standings })),
 )
-const Teams = lazy(() => import('@/pages/Teams').then((m) => ({ default: m.Teams })))
 const Refs = lazy(() => import('@/pages/Refs').then((m) => ({ default: m.Refs })))
 const MyGames = lazy(() =>
   import('@/pages/MyGames').then((m) => ({ default: m.MyGames })),
@@ -85,14 +84,6 @@ export default function App() {
               element={
                 <Suspense fallback={<PageFallback />}>
                   <Standings />
-                </Suspense>
-              }
-            />
-            <Route
-              path="teams"
-              element={
-                <Suspense fallback={<PageFallback />}>
-                  <Teams />
                 </Suspense>
               }
             />
