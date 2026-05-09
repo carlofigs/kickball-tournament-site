@@ -129,11 +129,17 @@ export function RosterEditor() {
                     {r.headEligible ? (
                       <Input
                         value={r.pin ?? ''}
-                        onChange={(e) =>
-                          updateRef(r.id, { pin: e.target.value || null })
-                        }
-                        placeholder="set PIN"
-                        className="h-8 text-sm font-mono"
+                        onChange={(e) => {
+                          // Numeric-only, max 4 chars — matches the
+                          // organiser and line-ref PIN format.
+                          const v = e.target.value.replace(/\D/g, '').slice(0, 4)
+                          updateRef(r.id, { pin: v || null })
+                        }}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={4}
+                        placeholder="4-digit"
+                        className="h-8 text-sm font-mono tracking-widest"
                         aria-label={`PIN for ${r.name}`}
                       />
                     ) : (

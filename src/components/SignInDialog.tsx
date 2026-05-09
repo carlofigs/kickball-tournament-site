@@ -104,7 +104,7 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
           </DialogTitle>
           <DialogDescription>
             {step === 'pin'
-              ? 'Enter your PIN. Head refs use their personal PIN; line refs use the shared one.'
+              ? 'Enter your 4-digit PIN. Head refs use their personal PIN; line refs use the shared one.'
               : 'Pick your name from the line-ref roster.'}
           </DialogDescription>
         </DialogHeader>
@@ -117,12 +117,15 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
             <Input
               id="auth-pin"
               type="password"
-              inputMode="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               autoComplete="off"
-              maxLength={16}
-              placeholder="••••••"
+              maxLength={4}
+              placeholder="••••"
               value={pin}
-              onChange={(e) => setPin(e.target.value)}
+              onChange={(e) =>
+                setPin(e.target.value.replace(/\D/g, '').slice(0, 4))
+              }
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleConfirm()
               }}
